@@ -1,0 +1,34 @@
+# conda environment description file for WWatch3-Cmd package
+# development environment
+#
+# Create a conda environment for development, testing and documentation of the package
+# with:
+#
+#   $ conda env create -f WWatch3-Cmd/env/environment-dev.yaml
+#   $ source activate wwatch3-cmd
+#   (wwatch3-cmd)$ pip install --editable WWatch3-Cmd
+#
+# See the env/requirements.txt file for an exhaustive list of all of the
+# packages installed in the environment and their versions used in
+# recent development.
+
+name: wwatch3-cmd
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - pip
+  - python=3.7
+
+  # For coding style
+  - black
+
+  # For unit tests
+  - coverage
+  - pytest
+
+  # For documentation
+  - sphinx
+  - sphinx_rtd_theme
