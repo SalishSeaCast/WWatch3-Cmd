@@ -17,7 +17,21 @@
 WWatch3-Cmd Documentation
 *********************************************
 
-This is the documentation for the :kbd:`wwatch3_cmd` Python package.
+The WaveWatch III® command processor package, ``WWatch3-Cmd``, provides the ``wwatch3``
+command-line tool for doing various operations associated with the Strait of Georgia
+configuration of the WAVEWATCH III® model as it is used in the context of the `MIDOSS project`_.
+
+.. _MIDOSS project: https://midoss-docs.readthedocs.io/en/latest/
+
+This an extensible tool built on the OpenStack ``cliff``
+(`Command Line Interface Formulation Framework`_)
+package.
+It uses plug-ins from the `NEMO-Cmd`_ package to provide a command processor tool
+that is specifically tailored to the Strait of Georgia WAVEWATCH III® model
+as it is used in the MIDOSS project.
+
+.. _Command Line Interface Formulation Framework: https://docs.openstack.org/cliff/latest/
+.. _NEMO-Cmd: https://bitbucket.org/salishsea/nemo-cmd
 
 
 .. toctree::

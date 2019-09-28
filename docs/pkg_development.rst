@@ -103,6 +103,12 @@ or copy the link from the :guilabel:`Clone` action pop-up on the `repository`_ p
 Development Environment
 =======================
 
+The :kbd:`WWatch3-Cmd` package depends on the :kbd:`NEMO-Cmd` package,
+so you need to clone the `NEMO-Cmd repo`_
+beside your clone of the :kbd:`WWatch3-Cmd` `repository`_.
+
+.. _NEMO-Cmd repo: https://bitbucket.org/salishsea/nemo-cmd
+
 Setting up an isolated development environment using `Conda`_ is recommended.
 Assuming that you have the `Anaconda Python Distribution`_ or `Miniconda3`_ installed,
 you can create and activate an environment called :kbd:`wwatch3-cmd` that will have all of the Python packages necessary for development,
@@ -115,12 +121,13 @@ and building the documentation with the commands below.
 
 .. code-block:: bash
 
-    $ cd WWatch3-Cmd
-    $ conda env create -f env/environment-dev.yaml
+    $ cd MIDOSS
+    $ conda env create -f WWatch3-Cmd/env/environment-dev.yaml
     $ source activate wwatch3-cmd
-    (wwatch3-cmd)$ pip install --editable .
+    (wwatch3-cmd)$ pip install --editable NEMO-Cmd/
+    (wwatch3-cmd)$ pip install --editable WWatch3-Cmd/
 
-The :kbd:`--editable` option in the :command:`pip install` command above installs the package from the cloned repo via symlinks so that the installed package will be automatically updated as the repo evolves.
+The :kbd:`--editable` option in the :command:`pip install` command above installs the packages from the cloned repos via symlinks so that the installed packages will be automatically updated as the repos evolve.
 
 To deactivate the environment use:
 
