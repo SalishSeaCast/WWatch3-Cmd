@@ -1,0 +1,8 @@
+[run]
+branch = True
+source =
+    wwatch3_cmd
+    tests
+
+[report]
+show_missing = True
