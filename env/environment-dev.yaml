@@ -6,6 +6,7 @@
 #
 #   $ conda env create -f WWatch3-Cmd/env/environment-dev.yaml
 #   $ source activate wwatch3-cmd
+#   (wwatch3-cmd)$ pip install --editable NEMO-Cmd
 #   (wwatch3-cmd)$ pip install --editable WWatch3-Cmd
 #
 # See the env/requirements.txt file for an exhaustive list of all of the
@@ -19,8 +20,13 @@ channels:
   - defaults
 
 dependencies:
+  - arrow
+  - attrs
+  - cliff!=2.9.0
+  - f90nml
   - pip
   - python=3.7
+  - python-hglib
 
   # For coding style
   - black
