@@ -23,6 +23,7 @@ dependencies:
   - arrow
   - attrs
   - cliff!=2.9.0
+  - cookiecutter
   - f90nml
   - pip
   - python=3.7
