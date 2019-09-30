@@ -17,4 +17,11 @@
 import setuptools
 
 
-setuptools.setup()
+setuptools.setup(
+    entry_points={
+        # The wwatch3 command:
+        "console_scripts": ["wwatch3 = wwatch3_cmd.main:main"],
+        # Sub-command plug-ins:
+        "wwatch3.app": ["prepare = wwatch3_cmd.prepare:Prepare"],
+    }
+)

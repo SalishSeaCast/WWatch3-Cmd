@@ -13,6 +13,7 @@
 .. See the License for the specific language governing permissions and
 .. limitations under the License.
 
+
 *********************************************
 WWatch3-Cmd Documentation
 *********************************************
@@ -38,7 +39,10 @@ as it is used in the MIDOSS project.
    :maxdepth: 2
    :caption: Contents:
 
+   subcommands
+   run_description_file/index
    pkg_development
+
 
 Indices
 =======
