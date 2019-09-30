@@ -193,17 +193,18 @@ use:
 to do a clean build of the documentation.
 The output looks something like::
 
+  Removing everything under '_build'...
   Running Sphinx v2.2.0
   making output directory... done
   building [mo]: targets for 0 po files that are out of date
-  building [html]: targets for 2 source files that are out of date
-  updating environment: [new config] 2 added, 0 changed, 0 removed
-  reading sources... [100%] pkg_development
+  building [html]: targets for 5 source files that are out of date
+  updating environment: [new config] 5 added, 0 changed, 0 removed
+  reading sources... [100%] subcommands
   looking for now-outdated files... none found
   pickling environment... done
   checking consistency... done
   preparing documents... done
-  writing output... [100%] pkg_development
+  writing output... [100%] subcommands
   generating indices...  genindexdone
   writing additional pages...
   done
@@ -214,7 +215,6 @@ The output looks something like::
   build succeeded.
 
   The HTML pages are in _build/html.
-
 
 The HTML rendering of the docs ends up in :file:`docs/_build/html/`.
 You can open the :file:`index.html` file in that directory tree in your browser to preview the results of the build.
@@ -239,49 +239,53 @@ use:
 
 The output looks something like::
 
-  Running Sphinx v2.2.0
-  making output directory... done
   loading pickled environment... done
   building [mo]: targets for 0 po files that are out of date
-  building [linkcheck]: targets for 2 source files that are out of date
-  updating environment: 0 added, 2 changed, 0 removed
-  reading sources... [100%] pkg_development
+  building [linkcheck]: targets for 5 source files that are out of date
+  updating environment: 0 added, 1 changed, 0 removed
+  reading sources... [100%] run_description_file/index
   looking for now-outdated files... none found
   pickling environment... done
   checking consistency... done
   preparing documents... done
-  writing output... [ 50%] index
-  (line   37) ok        https://img.shields.io/badge/license-Apache%202-cb2533.svg
-  (line   47) ok        https://www.apache.org/licenses/LICENSE-2.0
-  (line   37) ok        https://www.apache.org/licenses/LICENSE-2.0
-  writing output... [100%] pkg_development
+  writing output... [ 20%] index
+  (line   27) ok        https://docs.openstack.org/cliff/latest/
+  (line   55) ok        https://img.shields.io/badge/license-Apache%202-cb2533.svg
+  (line   21) ok        https://midoss-docs.readthedocs.io/en/latest/
+  (line   27) ok        https://bitbucket.org/salishsea/nemo-cmd
+  (line   55) ok        https://www.apache.org/licenses/LICENSE-2.0
+  (line   65) ok        https://www.apache.org/licenses/LICENSE-2.0
+  writing output... [ 40%] pkg_development
   (line   21) ok        https://docs.python.org/3.7/
-  (line   21) ok        https://black.readthedocs.io/en/stable/
   (line   58) ok        https://www.python.org/
-  (line   43) ok        https://midoss-docs.readthedocs.io/en/latest/
   (line   62) ok        https://docs.python.org/3/reference/lexical_analysis.html#f-strings
-  (line   64) ok        https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep519
   (line   21) ok        https://bitbucket.org/midoss/wwatch3-cmd/
-  (line   74) ok        https://bitbucket.org/midoss/wwatch3-cmd/
-  (line  106) ok        https://www.anaconda.com/distribution/
-  (line   80) ok        https://bitbucket.org/midoss/wwatch3-cmd/
-  (line  106) ok        https://conda.io/en/latest/
-  (line  141) ok        https://www.python.org/dev/peps/pep-0008/
-  (line  172) ok        http://www.sphinx-doc.org/en/master/
-  (line  172) ok        http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
-  (line  296) ok        https://www.mercurial-scm.org/
+  (line   21) ok        https://black.readthedocs.io/en/stable/
+  (line   64) ok        https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep519
+  (line  112) ok        https://www.anaconda.com/distribution/
   (line   94) ok        https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html
+  (line  148) ok        https://www.python.org/dev/peps/pep-0008/
+  (line  180) ok        http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+  (line   21) ok        https://bitbucket.org/midoss/wwatch3-cmd/issues?status=new&status=open
+  (line  112) ok        https://conda.io/en/latest/
+  (line  180) ok        http://www.sphinx-doc.org/en/master/
+  (line  294) ok        https://docs.pytest.org/en/latest/
+  (line  317) ok        https://coverage.readthedocs.io/en/latest/
+  (line  112) ok        https://docs.conda.io/en/latest/miniconda.html
   (line   21) ok        https://img.shields.io/badge/python-3.6+-blue.svg
-  (line  244) ok        https://docs.pytest.org/en/latest/
   (line   21) ok        https://img.shields.io/badge/version%20control-hg-blue.svg
-  (line  262) ok        https://coverage.readthedocs.io/en/latest/
   (line   21) ok        https://img.shields.io/badge/code%20style-black-000000.svg
   (line   21) ok        https://img.shields.io/bitbucket/issues/midoss/wwatch3-cmd.svg
-  (line  166) ok        https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
+  (line  174) ok        https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
   (line   21) ok        https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
+  (line  351) ok        https://www.mercurial-scm.org/
+  (line  365) ok        https://bitbucket.org/midoss/wwatch3-cmd/issues
+  writing output... [ 60%] run_description_file/index
+  (line   23) ok        https://pyyaml.org/wiki/PyYAMLDocumentation
+  writing output... [ 80%] run_description_file/yaml_file
+  writing output... [100%] subcommands
 
-  build finished with problems.
-
+  build finished.
 
 Look for any errors in the above output or in _build/linkcheck/output.txt
 
@@ -307,12 +311,14 @@ use:
 to run the test suite.
 The output looks something like::
 
-  ================================= test session starts =================================
+  =========================== test session starts ===========================
   platform linux -- Python 3.7.3, pytest-5.1.2, py-1.8.0, pluggy-0.13.0
   rootdir: /media/doug/warehouse/MIDOSS/WWatch3-Cmd
-  collected 0 items
+  collected 10 items
 
-  ================================ no tests ran in 0.17s ================================
+  tests/test_prepare.py ..........                                     [100%]
+
+  ============================ 10 passed in 0.17s ============================
 
 You can monitor what lines of code the test suite exercises using the `coverage.py`_ tool with the command:
 
