@@ -1,0 +1,51 @@
+$ WAVEWATCH III shell input file
+$
+$ Forcing/inputs to use
+  F F  Water levels w/ homogeneous field data
+  T F  Currents w/ homogeneous field data
+  T F  Winds w/ homogeneous field data
+  F    Ice concentration
+  F    Assimilation data : Mean parameters
+  F    Assimilation data : 1-D spectra
+  F    Assimilation data : 2-D spectra.
+$
+   {{ cookiecutter.run_start_date_yyyymmdd }} 000000  Start time (YYYYMMDD HHmmss)
+   {{ cookiecutter.run_end_date_yyyymmdd }} 000000  End time (YYYYMMDD HHmmss)
+$
+$ Output server mode
+  2  dedicated process
+$
+$ Field outputs
+$ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 1800 {{ cookiecutter.run_end_date_yyyymmdd }} 000000
+$ Fields
+  N  by name
+  HS LM WND CUR FP T02 DIR DP WCH WCC TWO FOC USS
+$
+$ Point outputs
+$ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 600 {{ cookiecutter.run_end_date_yyyymmdd }} 000000
+$ longitude, latitude, 10-char name
+   236.52 48.66 'C46134PatB'
+   236.27 49.34 'C46146HalB'
+   235.01 49.91 'C46131SenS'
+   0.0 0.0 'STOPSTRING'
+$
+$ Along-track output (required placeholder for unused feature)
+$ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 0 {{ cookiecutter.run_end_date_yyyymmdd }} 000000
+$
+$ Restart files
+$ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+  {{ cookiecutter.run_end_date_yyyymmdd }} 000000 3600 {{ cookiecutter.run_end_date_yyyymmdd }} 000000
+$
+$ Boundary data (required placeholder for unused feature)
+$ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 0 {{ cookiecutter.run_end_date_yyyymmdd }} 000000
+$
+$ Separated wave field data (required placeholder for unused feature)
+$ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 0 {{ cookiecutter.run_end_date_yyyymmdd }} 000000
+$
+$ Homogeneous field data (required placeholder for unused feature)
+  ’STP’

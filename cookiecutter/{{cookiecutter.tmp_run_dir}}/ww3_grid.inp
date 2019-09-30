@@ -1,0 +1,139 @@
+$ WAVEWATCH III Grid preprocessor input file
+$ ------------------------------------------
+$  Grid name (C*30, in quotes)
+  'SoG_BCgrid_00500m             '
+$
+$         '
+$ Frequency increment factor and first frequency (Hz) number of frequencies (wavenumbers) and directions,
+$ relative offset of first direction in terms of the directional increment [-0.5,0.5].
+$ In versions 1.18 and 2.22 of the model this value was by definiton 0,
+$ it is added to mitigate the GSE for a first order scheme.
+$ Note that this factor is IGNORED in the print plots in ww3_outp.
+$   1.1  0.04  25  24  0.
+   1.1  0.06665  25  24  0.
+$  1.1  0.04665  15  24  0.
+$  1.1  0.04665  15  24  0.5
+$
+$ Set model flags
+$ - FLDRY:  Dry run (input/output only, no calculation).
+$ - FLCX, FLCY: Activate X and Y component of propagation.
+$ - FLCTH, FLCK: Activate direction and wavenumber shifts.
+$ - FLSOU:  Activate source terms.
+$$   F T T T T T
+$$$    F F F F F T
+     F T T T T T
+$
+$ Set time steps
+$ - Time step information (this information is always read)
+$ maximum global time step, maximum CFL time step for x-y and
+$ k-theta, minimum source term time step (all in seconds).
+$
+$  3600.  1300.  1300.  25.
+  200.  50.  100.  10.
+$$
+$
+$ Start of namelist input section ------------------------------------ $
+$ Starting with WAVEWATCH III version 2.00, the tunable parameters
+$ for source terms, propagation schemes, and numerics are read using
+$ namelists. Any namelist found in the folowing sections up to the
+$ end-of-section identifier string (see below) is temporarily written
+$ to ww3_grid.scratch, and read from there if necessary. Namelists
+$ not needed for the given switch settings will be skipped
+$ automatically, and the order of the namelists is immaterial.
+$  see manual section 4.2 for options (many!)
+$ Activated up to one line per namelist !!
+$
+$  &PRO2 DTIME= 0. /
+$ &PRO2 DTIME=172800. /
+$ &PRO2 DTIME=345600. /
+$ &PRO3 WDTHTH=0.00, WDTHCG=0.00 /
+$ &PRO3 WDTHTH=0.75, WDTHCG=0.75 /
+$ &PRO3 WDTHTH=1.50, WDTHCG=1.50 /
+$ &PRO3 WDTHTH=2.00, WDTHCG=2.00 /
+$ &PRO3 WDTHTH=0.00, WDTHCG=2.00 /
+$ &PRO3 WDTHTH=2.00, WDTHCG=0.00 /
+$
+$
+$ Mandatory string to identify end of namelist input section.
+$
+END OF NAMELISTS
+$
+$ Define grid -------------------------------------------------------- $
+$
+$ Five records containing :
+$
+$ 1 Type of grid, coordinate system and type of closure: GSTRG, FLAGLL,
+$ CSTRG. Grid closure can only be applied in spherical coordinates.
+$ GSTRG : String indicating type of grid :
+$ ’RECT’ : rectilinear
+$ ’CURV’ : curvilinear
+$ FLAGLL : Flag to indicate coordinate system :
+$ T : Spherical (lon/lat in degrees)
+$ F : Cartesian (meters)
+$ CSTRG : String indicating the type of grid index space closure :
+$ ’NONE’ : No closure is applied
+$ ’SMPL’ : Simple grid closure : Grid is periodic in the
+$ : i-index and wraps at i=NX+1. In other words,
+$ : (NX+1,J) => (1,J). A grid with simple closure
+$ : may be rectilinear or curvilinear.
+$ ’TRPL’ : Tripole grid closure : Grid is periodic in the
+$ : i-index and wraps at i=NX+1 and has closure at
+$ : j=NY+1. In other words, (NX+1,J<=NY) => (1,J)
+$ : and (I,NY+1) => (MOD(NX-I+1,NX)+1,NY). Tripole
+$ : grid closure requires that NX be even. A grid
+$ : with tripole closure must be curvilinear.
+$
+$ 2 NX, NY. As the outer grid lines are always defined as land
+$ points, the minimum size is 3x3.
+$
+$ Branch here based on grid type:
+$
+$ IF ( RECTILINEAR GRID ) THEN
+$
+$ 3 Grid increments SX, SY (degr.or m) and scaling (division) factor.
+$ If CSTRG=’SMPL’, then SX is set to 360/NX.
+$
+$ 4 Coordinates of (1,1) (degr.) and scaling (division) factor.
+$
+$ ELSE IF ( CURVILINEAR GRID ) THEN
+$  (see manual for settings for non-rctiliniar grids)
+$  (here we assume a rectiliniar grid)
+$
+$ END IF ( GRID TYPE )
+$
+$ 5 Limiting bottom depth (m) to discriminate between land and sea
+$ points, minimum water depth (m) as allowed in model, unit number
+$ of file with bottom depths, scale factor for bottom depths (mult.),
+$ IDLA, IDFM, format for formatted read, FROM and filename.
+$ IDLA : Layout indicator :
+$ 1 : Read line-by-line bottom to top.
+$ 2 : Like 1, single read statement.
+$ 3 : Read line-by-line top to bottom.
+$ 4 : Like 3, single read statement.
+$ IDFM : format indicator :
+$ 1 : Free format.
+$ 2 : Fixed format with above format descriptor.
+$ 3 : Unformatted.
+$
+  'RECT' T 'NONE'
+  572      661
+  0.42     0.27   60.00
+  234.0000          48.0000         1.00
+  -0.10   2.50  20  0.001000  1  1 '(....)'  NAME  'grid/SoG_BCgrid_00500m.bot'
+$
+$ Sub-grid information
+$$   30  0.010000  1  1  '(....)'  NAME  'grid/SoG_BCgrid_00500m.obs'
+   40  1  1  '(....)'  NAME  'grid/SoG_BCgrid_00500m.msk'
+$
+$
+$
+$$   0  0  F
+$$   0  0  F
+$$   0  0
+$
+$  Close list by defining line with 0 points (mandatory)
+   0. 0. 0. 0.  0
+$ -------------------------------------------------------------------- $
+$ End of input file
+$
+$ -------------------------------------------------------------------- $
