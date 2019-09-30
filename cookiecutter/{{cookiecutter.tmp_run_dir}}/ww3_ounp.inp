@@ -1,0 +1,23 @@
+$ WAVEWATCH III NETCDF Point output post-processing
+$
+$ First output time (YYYYMMDD HHmmss), output increment (s), number of output times
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 600 144
+$
+$ All points defined in ww3_shel.inp
+  -1
+$ File prefix
+$ number of characters in date
+$ netCDF4 output
+$ one file, max number of points to process
+$ tables of mean parameters
+$ WW3 global attributes
+$ time,station dimension order
+$ WMO standard output
+  SoG_ww3_points_
+  8
+  4
+  T 100
+  2
+  0
+  T
+  6

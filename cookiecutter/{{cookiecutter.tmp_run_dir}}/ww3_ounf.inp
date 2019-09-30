@@ -1,0 +1,25 @@
+$ WAVEWATCH III NETCDF Grid output post-processing
+$
+$ First output time (YYYYMMDD HHmmss), output increment (s), number of output times
+  {{ cookiecutter.run_start_date_yyyymmdd }} 000000 1800 48
+$
+$ Fields
+  N  by name
+  HS LM WND CUR FP T02 DIR DP WCH WCC TWO FOC USS
+$
+$ netCDF4 output
+$ real numbers
+$ swell partitions
+$ one file
+  4
+  4
+  0 1 2
+  T
+$
+$ File prefix
+$ number of characters in date
+$ IX, IY range
+$
+  SoG_ww3_fields_
+  8
+  1 1000000 1 1000000

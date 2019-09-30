@@ -1,4 +1,6 @@
 {
   "run_id": "SoGwaves",
+  "run_start_date_yyyymmdd": "{% now 'local', '%Y%m%d' %}",
+  "run_end_date_yyyymmdd": "{% now 'local', '%Y%m%d' %}",
   "tmp_run_dir": "{{ cookiecutter.run_id }}_{% now 'local', '%Y-%m-%dT%H%M%S.%f%z' %}"
 }

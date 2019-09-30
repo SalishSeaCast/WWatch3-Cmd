@@ -1,0 +1,14 @@
+$ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_wind.inp
+$
+$ Forcing type, grid type, time in file, header
+   'WND' 'LL' T T
+$
+$ Dimension variable names
+  x y
+$
+$ Wind component variable names
+  u_wind v_wind
+$
+$ Forcing source file path/name
+$ File is produced by make_ww3_wind_file worker
+  'wind/SoG_wind_{{ cookiecutter.run_start_date_yyyymmdd }}.nc'

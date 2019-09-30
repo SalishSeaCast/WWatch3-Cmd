@@ -1,0 +1,14 @@
+$ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_current.inp
+$
+$ Forcing type, grid type, time in file, header
+  'CUR' 'LL' T T
+$ Name of dimensions
+$
+  x y
+$
+$ Sea water current component variable names
+  u_current v_current
+$
+$ Forcing source file path/name
+$ File is produced by make_ww3_current_file worker
+  'current/SoG_current_{{ cookiecutter.run_start_date_yyyymmdd }}.nc'
