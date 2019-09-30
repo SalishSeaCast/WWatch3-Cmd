@@ -88,6 +88,6 @@ def prepare(desc_file):
         os.fspath(Path(__file__).parent.parent / "cookiecutter"),
         no_input=True,
         output_dir=runs_dir,
-        extra_context={"run_id": run_id},
+        extra_context={"run_id": run_id, "runs_dir": runs_dir},
     )
     return tmp_run_dir
