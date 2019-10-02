@@ -98,7 +98,13 @@ class TestTakeAction:
 @patch(
     "wwatch3_cmd.prepare.nemo_cmd.prepare.get_run_desc_value",
     autospec=True,
-    side_effect=("SoGwaves", "$SCRATCH/MIDOSS/wwatch3-runs/"),
+    side_effect=(
+        "SoGwaves",
+        "$SCRATCH/MIDOSS/wwatch3-runs/",
+        "$PROJECT/$USER/MIDOSS/wwatch3-runs/mod_def.ww3",
+        "$SCRATCH/MIDOSS/forcing/wwatch3/current",
+        "$SCRATCH/MIDOSS/forcing/wwatch3/wind",
+    ),
 )
 @patch("wwatch3_cmd.prepare.cookiecutter.main.cookiecutter", spec=True)
 class TestPrepare:
