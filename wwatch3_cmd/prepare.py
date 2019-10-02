@@ -84,10 +84,25 @@ def prepare(desc_file):
     runs_dir = nemo_cmd.prepare.get_run_desc_value(
         run_desc, ("paths", "runs directory"), resolve_path=True
     )
+    mod_def_ww3_path = nemo_cmd.prepare.get_run_desc_value(
+        run_desc, ("grid", "mod_def.ww3 file"), resolve_path=True
+    )
+    current_forcing_dir = nemo_cmd.prepare.get_run_desc_value(
+        run_desc, ("forcing", "current"), resolve_path=True
+    )
+    wind_forcing_dir = nemo_cmd.prepare.get_run_desc_value(
+        run_desc, ("forcing", "wind"), resolve_path=True
+    )
     tmp_run_dir = cookiecutter.main.cookiecutter(
         os.fspath(Path(__file__).parent.parent / "cookiecutter"),
         no_input=True,
         output_dir=runs_dir,
-        extra_context={"run_id": run_id, "runs_dir": runs_dir},
+        extra_context={
+            "run_id": run_id,
+            "runs_dir": runs_dir,
+            "mod_def_ww3_path": mod_def_ww3_path,
+            "current_forcing_dir": current_forcing_dir,
+            "wind_forcing_dir": wind_forcing_dir,
+        },
     )
     return tmp_run_dir
