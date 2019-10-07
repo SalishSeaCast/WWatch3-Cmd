@@ -9,7 +9,7 @@
   "current_forcing_dir": "$SCRATCH/MIDOSS/forcing/wwatch3/current",
   "wind_forcing_dir": "$SCRATCH/MIDOSS/forcing/wwatch3/wind",
   "restart_path": "",
-  "runs_dir": "$SCRATCH/MIDOSS/wwatch3-runs",
+  "runs_dir": "$SCRATCH/MIDOSS/wwatch3-runs/",
   "results_dir": "$PROJECT/$USER/MIDOSS/wwatch3/{{ cookiecutter.run_id }}",
   "tmp_run_dir": "{{ cookiecutter.run_id }}_{% now 'local', '%Y-%m-%dT%H%M%S.%f%z' %}",
   "wwatch3_exe_dir": "$PROJECT/$USER/MIDOSS/wwatch3-5.16/exe",

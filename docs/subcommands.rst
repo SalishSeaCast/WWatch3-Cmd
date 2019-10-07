@@ -37,8 +37,7 @@ The command :kbd:`wwatch3 help` produces a list of the available :program:`wwatc
   Commands:
     complete       print bash completion command (cliff)
     help           print detailed help for another command (cliff)
-    prepare        Set up the WaveWatch III® run described in DESC_FILE and print the path of the temporary run directory.
-
+    run            Prepare, execute, and gather results from a WaveWatch III® model run.
 
 For details of the arguments and options for a sub-command use
 :command:`wwatch3 help <sub-command>`.
@@ -47,38 +46,59 @@ For example:
 
 .. code-block:: bash
 
-    $ wwatch3 help prepare
+    $ wwatch3 help run
 
 ::
 
-    usage: wwatch3 prepare [-h] [-q] DESC_FILE
+    usage: wwatch3 run [-h] [--no-submit] [-q] DESC_FILE RESULTS_DIR
 
-    Set up the WaveWatch III® run described in DESC_FILE and print the path of the
-    temporary run directory.
+    Prepare, execute, and gather the results from a WaveWatch III® run described
+    in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
+    RESULTS_DIR does not exist it will be created.
 
     positional arguments:
       DESC_FILE    run description YAML file
+      RESULTS_DIR  directory to store results into
 
     optional arguments:
       -h, --help   show this help message and exit
-      -q, --quiet  don't show the run directory path on completion
+      --no-submit  Prepare the temporary run directory, and the bash script to
+                   execute the WaveWatch III® run, but don't submit the run to the
+                   queue.
+                   This is useful during development runs when you want to hack on
+                   the bash script and/or use the same temporary run directory
+                   more than once.
+      -q, --quiet  don't show the run directory path or job submission message
 
 
-.. _wwatch3-prepare:
+.. _wwatch3-run:
 
-:kbd:`prepare` Sub-command
-==========================
+:kbd:`run` Sub-command
+======================
 
-The :command:`prepare` sub-command sets up a temporary run directory from which to execute the WaveWatch III® run described in the run description YAML file provided on the command-line::
+The :command:`run` sub-command prepares,
+executes,
+and gathers the results from the WaveWatch III® run described in the run description YAML file provided on the command-line.
+The results are gathered in the results directory that is also provided on the command-line.
 
-  usage: wwatch3 prepare [-h] [-q] DESC_FILE
+::
 
-  Set up the WaveWatch III® run described in DESC_FILE and print the path of the
-  temporary run directory.
+  usage: wwatch3 run [-h] [--no-submit] [-q] DESC_FILE RESULTS_DIR
+
+  Prepare, execute, and gather the results from a WaveWatch III® run described
+  in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
+  RESULTS_DIR does not exist it will be created.
 
   positional arguments:
     DESC_FILE    run description YAML file
+    RESULTS_DIR  directory to store results into
 
   optional arguments:
     -h, --help   show this help message and exit
-    -q, --quiet  don't show the run directory path on completion
+    --no-submit  Prepare the temporary run directory, and the bash script to
+                 execute the WaveWatch III® run, but don't submit the run to the
+                 queue.
+                 This is useful during development runs when you want to hack on
+                 the bash script and/or use the same temporary run directory
+                 more than once.
+    -q, --quiet  don't show the run directory path or job submission message
