@@ -16,12 +16,15 @@
 
 Prepare for, execute, and gather the results of a run of the WaveWatch III® model.
 """
+import argparse
 import logging
 import os
 from pathlib import Path
 import shlex
 import subprocess
 
+import arrow
+import arrow.parser
 import cliff.command
 import cookiecutter.main
 import nemo_cmd.prepare
@@ -72,7 +75,35 @@ class Run(cliff.command.Command):
             action="store_true",
             help="don't show the run directory path or job submission message",
         )
+        parser.add_argument(
+            "--run-date",
+            type=self._arrow_date,
+            default=arrow.now().floor("day"),
+            help=(
+                f"Date to execute the run for. Use YYYY-MM-DD format. "
+                f"Defaults to {arrow.now().floor('day').format('YYYY-MM-DD')}."
+            ),
+        )
         return parser
+
+    @staticmethod
+    def _arrow_date(string):
+        """Convert a YYYY-MM-DD string to a UTC arrow object or raise
+        :py:exc:`argparse.ArgumentTypeError`.
+
+        The time part of the resulting arrow object is set to 00:00:00.
+
+        :arg str string: YYYY-MM-DD string to convert.
+
+        :returns: Date string converted to a UTC :py:class:`arrow.Arrow` object.
+
+        :raises: :py:exc:`argparse.ArgumentTypeError`
+        """
+        try:
+            return arrow.get(string, "YYYY-MM-DD")
+        except arrow.parser.ParserError:
+            msg = f"unrecognized date format: {string} - please use YYYY-MM-DD"
+            raise argparse.ArgumentTypeError(msg)
 
     def take_action(self, parsed_args):
         """Execute the `wwatch3 run` sub-coomand.
@@ -86,6 +117,7 @@ class Run(cliff.command.Command):
         submit_job_msg = run(
             parsed_args.desc_file,
             parsed_args.results_dir,
+            parsed_args.run_date,
             no_submit=parsed_args.no_submit,
             quiet=parsed_args.quiet,
         )
@@ -93,7 +125,7 @@ class Run(cliff.command.Command):
             logger.info(submit_job_msg)
 
 
-def run(desc_file, results_dir, no_submit=False, quiet=False):
+def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
     """Create and populate a temporary run directory, and a run script,
     and submit the run to the queue manager.
 
@@ -106,6 +138,9 @@ def run(desc_file, results_dir, no_submit=False, quiet=False):
     :param results_dir: Path of the directory in which to store the run results;
                         it will be created if it does not exist.
     :type results_dir: :py:class:`pathlib.Path`
+
+    :param run_date: Date to execute run for.
+    :type :py:class:`arrow.Arrow`:
 
     :param boolean no_submit: Prepare the temporary run directory,
                               and the run script to execute the WaveWatch III® run,
@@ -141,6 +176,8 @@ def run(desc_file, results_dir, no_submit=False, quiet=False):
         extra_context={
             "run_id": run_id,
             "runs_dir": runs_dir,
+            "run_start_date_yyyymmdd": run_date.format("YYYY-MM-DD"),
+            "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYY-MM-DD"),
             "mod_def_ww3_path": mod_def_ww3_path,
             "current_forcing_dir": current_forcing_dir,
             "wind_forcing_dir": wind_forcing_dir,

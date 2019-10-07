@@ -50,25 +50,32 @@ For example:
 
 ::
 
-    usage: wwatch3 run [-h] [--no-submit] [-q] DESC_FILE RESULTS_DIR
+    usage: wwatch3 run [-h] [--no-submit] [-q] [--run-date RUN_DATE]
+                       DESC_FILE RESULTS_DIR
 
     Prepare, execute, and gather the results from a WaveWatch III® run described
     in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
     RESULTS_DIR does not exist it will be created.
 
     positional arguments:
-      DESC_FILE    run description YAML file
-      RESULTS_DIR  directory to store results into
+      DESC_FILE            run description YAML file
+      RESULTS_DIR          directory to store results into
 
     optional arguments:
-      -h, --help   show this help message and exit
-      --no-submit  Prepare the temporary run directory, and the bash script to
-                   execute the WaveWatch III® run, but don't submit the run to the
-                   queue.
-                   This is useful during development runs when you want to hack on
-                   the bash script and/or use the same temporary run directory
-                   more than once.
-      -q, --quiet  don't show the run directory path or job submission message
+      -h, --help           show this help message and exit
+      --no-submit          Prepare the temporary run directory, and the bash
+                           script to
+                           execute the WaveWatch III® run, but don't submit the
+                           run to the queue.
+                           This is useful during development runs when you want to
+                           hack on
+                           the bash script and/or use the same temporary run
+                           directory
+                           more than once.
+      -q, --quiet          don't show the run directory path or job submission
+                           message
+      --run-date RUN_DATE  Date to execute the run for. Use YYYY-MM-DD format.
+                           Defaults to 2019-10-07.
 
 
 .. _wwatch3-run:
@@ -83,22 +90,29 @@ The results are gathered in the results directory that is also provided on the c
 
 ::
 
-  usage: wwatch3 run [-h] [--no-submit] [-q] DESC_FILE RESULTS_DIR
+  usage: wwatch3 run [-h] [--no-submit] [-q] [--run-date RUN_DATE]
+                     DESC_FILE RESULTS_DIR
 
   Prepare, execute, and gather the results from a WaveWatch III® run described
   in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
   RESULTS_DIR does not exist it will be created.
 
   positional arguments:
-    DESC_FILE    run description YAML file
-    RESULTS_DIR  directory to store results into
+    DESC_FILE            run description YAML file
+    RESULTS_DIR          directory to store results into
 
   optional arguments:
-    -h, --help   show this help message and exit
-    --no-submit  Prepare the temporary run directory, and the bash script to
-                 execute the WaveWatch III® run, but don't submit the run to the
-                 queue.
-                 This is useful during development runs when you want to hack on
-                 the bash script and/or use the same temporary run directory
-                 more than once.
-    -q, --quiet  don't show the run directory path or job submission message
+    -h, --help           show this help message and exit
+    --no-submit          Prepare the temporary run directory, and the bash
+                         script to
+                         execute the WaveWatch III® run, but don't submit the
+                         run to the queue.
+                         This is useful during development runs when you want to
+                         hack on
+                         the bash script and/or use the same temporary run
+                         directory
+                         more than once.
+    -q, --quiet          don't show the run directory path or job submission
+                         message
+    --run-date RUN_DATE  Date to execute the run for. Use YYYY-MM-DD format.
+                         Defaults to 2019-10-07.
