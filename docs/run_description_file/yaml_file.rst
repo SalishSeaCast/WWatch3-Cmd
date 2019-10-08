@@ -39,6 +39,32 @@ The following key-value pairs provide the basic configuration for the run:
 :kbd:`run_id`
    The job identifier that appears in the temporary run directory name and the :command:`squeue` command output.
 
+:kbd:`email`
+  The email address at which you want to receive notification of the beginning and end of execution of the run,
+  as well as notification of abnormal abort messages.
+  You can include multiple email addresses by separating them with commas.
+
+:kbd:`account`
+  The account name to include in the :kbd:`#SBATCH` directives section of the :file:`SoGWW3.sh` job script.
+  This key-value pair is required on systems like :kbd:`cedar.computecanada.ca` and :kbd:`graham.computecanada.ca` that use the `Slurm Workload Manager`_ and that you submit runs to with the :command:`sbatch` command.
+
+  .. _Slurm Workload Manager: https://slurm.schedmd.com/
+
+:kbd:`walltime`
+  The wall-clock time requested for the run.
+  It limits the time that the job will run for,
+  and it also affects queue priority.
+  It is important to allow some buffer time when calculating your walltime limits to allow for indeterminacy of the WaveWatch III® run.
+
+Here is an example of the basic run configuration keys and values:
+
+.. code-block:: yaml
+
+    run_id: SoGwaves
+    email: you@example.com
+    account: def-allen
+    walltime: 00:20:00
+
 
 .. _PathsSection:
 

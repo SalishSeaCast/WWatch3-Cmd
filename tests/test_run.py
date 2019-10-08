@@ -54,6 +54,9 @@ def run_desc(tmp_path):
         textwrap.dedent(
             f"""\
             run_id: SoGwaves
+            walltime: 00:20:00
+            account: def-allen
+            email: someone@eoas.ubc.ca
             
             paths:
               runs directory: {os.fspath(scratch_ww3_runs)}
@@ -197,6 +200,7 @@ class TestTakeAction:
 @patch("wwatch3_cmd.run.logger", autospec=True)
 @patch("wwatch3_cmd.run.subprocess.run", autospec=True)
 @patch("wwatch3_cmd.run._resolve_results_dir", spec=True)
+@patch("wwatch3_cmd.run._sbatch_directives", spec=True)
 @patch(
     "wwatch3_cmd.run.cookiecutter.main.cookiecutter",
     return_value="tmp_run_dir",
@@ -209,6 +213,7 @@ class TestRun:
     def test_no_submit(
         self,
         m_cookiecutter,
+        m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
         m_logger,
@@ -229,6 +234,7 @@ class TestRun:
     def test_submit(
         self,
         m_cookiecutter,
+        m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
         m_logger,
@@ -252,6 +258,7 @@ class TestRun:
     def test_cookiecutter(
         self,
         m_cookiecutter,
+        m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
         m_logger,
@@ -266,6 +273,8 @@ class TestRun:
             no_input=True,
             output_dir=Path(run_desc["paths"]["runs directory"]),
             extra_context={
+                "batch_directives": m_sbatch_dir(run_desc),
+                "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": "SoGwaves",
                 "runs_dir": Path(run_desc["paths"]["runs directory"]),
                 "run_start_date_yyyymmdd": run_date.format("YYYY-MM-DD"),
@@ -276,3 +285,29 @@ class TestRun:
                 "results_dir": m_rslv_results_dir(),
             },
         )
+
+
+class TestSbatchDirectives:
+    """Unit tests for _sbatch_directives() function.
+    """
+
+    def test_sbatch_directives(self, run_desc, tmp_path):
+        results_dir = tmp_path / "results_dir"
+        sbatch_directives = wwatch3_cmd.run._sbatch_directives(run_desc, results_dir)
+        expected = textwrap.dedent(
+            f"""\
+            #SBATCH --job-name={run_desc['run_id']}
+            #SBATCH --mail-user=someone@eoas.ubc.ca
+            #SBATCH --mail-type=ALL
+            #SBATCH --account=def-allen
+            #SBATCH --constraint=skylake
+            #SBATCH --nodes=1
+            #SBATCH --ntasks-per-node=48
+            #SBATCH --mem=0
+            #SBATCH --time=00:20:00
+            # stdout and stderr file paths/names
+            #SBATCH --output={results_dir/"stdout"}
+            #SBATCH --error={results_dir/"stderr"}
+            """
+        )
+        assert sbatch_directives == expected

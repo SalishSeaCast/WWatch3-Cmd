@@ -22,6 +22,7 @@ import os
 from pathlib import Path
 import shlex
 import subprocess
+import textwrap
 
 import arrow
 import arrow.parser
@@ -174,6 +175,8 @@ def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
         no_input=True,
         output_dir=runs_dir,
         extra_context={
+            "batch_directives": _sbatch_directives(run_desc, results_dir),
+            "module_loads": "module load netcdf-fortran-mpi/4.4.4",
             "run_id": run_id,
             "runs_dir": runs_dir,
             "run_start_date_yyyymmdd": run_date.format("YYYY-MM-DD"),
@@ -213,3 +216,24 @@ def _resolve_results_dir(results_dir):
     """
     results_dir = Path(os.path.expandvars(results_dir)).expanduser().resolve()
     return results_dir
+
+
+def _sbatch_directives(run_desc, results_dir):
+    run_id = nemo_cmd.prepare.get_run_desc_value(run_desc, ("run_id",))
+    sbatch_directives = textwrap.dedent(
+        f"""\
+        #SBATCH --job-name={run_id}
+        #SBATCH --mail-user={nemo_cmd.prepare.get_run_desc_value(run_desc, ("email",))}
+        #SBATCH --mail-type=ALL
+        #SBATCH --account={nemo_cmd.prepare.get_run_desc_value(run_desc, ("account",))}
+        #SBATCH --constraint=skylake
+        #SBATCH --nodes=1
+        #SBATCH --ntasks-per-node=48
+        #SBATCH --mem=0
+        #SBATCH --time={nemo_cmd.prepare.get_run_desc_value(run_desc, ("walltime",))}
+        # stdout and stderr file paths/names
+        #SBATCH --output={results_dir/"stdout"}
+        #SBATCH --error={results_dir/"stderr"}
+        """
+    )
+    return sbatch_directives
