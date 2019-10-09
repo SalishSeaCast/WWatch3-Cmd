@@ -39,6 +39,8 @@ def run_desc(tmp_path):
     scratch.mkdir()
     scratch_ww3_runs = scratch / "wwatch3_runs"
     scratch_ww3_runs.mkdir()
+    results_01jan15 = scratch_ww3_runs / "01jan15"
+    results_01jan15.mkdir()
     current_dir = scratch / "current"
     current_dir.mkdir()
     wind_dir = scratch / "wind"
@@ -67,6 +69,9 @@ def run_desc(tmp_path):
             forcing:
               current: {os.fspath(current_dir)}
               wind: {os.fspath(wind_dir)}
+              
+            restart:
+              restart.ww3: {os.fspath(results_01jan15)}
             """
         )
     )
@@ -286,6 +291,44 @@ class TestRun:
                 "mod_def_ww3_path": Path(run_desc["grid"]["mod_def.ww3 file"]),
                 "current_forcing_dir": Path(run_desc["forcing"]["current"]),
                 "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
+                "restart_path": Path(run_desc["restart"]["restart.ww3"]),
+                "results_dir": m_rslv_results_dir(),
+            },
+        )
+
+    def test_cookiecutter_no_restart(
+        self,
+        m_open,
+        m_cookiecutter,
+        m_sbatch_dir,
+        m_rslv_results_dir,
+        m_subproc_run,
+        m_logger,
+        run_desc,
+        tmp_path,
+    ):
+        results_dir = tmp_path / "results_dir"
+        run_date = arrow.get("2019-10-07")
+        with patch.dict(run_desc, {"restart": {"not restart.ww3": "whatever"}}):
+            # **Must use open() here because Path.open() is patched**
+            with open(tmp_path / "wwatch3.yaml", "wt") as f:
+                yaml.safe_dump(run_desc, f)
+            wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, run_date)
+        m_cookiecutter.assert_called_once_with(
+            os.fspath(Path(__file__).parent.parent / "cookiecutter"),
+            no_input=True,
+            output_dir=Path(run_desc["paths"]["runs directory"]),
+            extra_context={
+                "batch_directives": m_sbatch_dir(run_desc),
+                "module_loads": "module load netcdf-fortran-mpi/4.4.4",
+                "run_id": "SoGwaves",
+                "runs_dir": Path(run_desc["paths"]["runs directory"]),
+                "run_start_date_yyyymmdd": run_date.format("YYYYMMDD"),
+                "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYYMMDD"),
+                "mod_def_ww3_path": Path(run_desc["grid"]["mod_def.ww3 file"]),
+                "current_forcing_dir": Path(run_desc["forcing"]["current"]),
+                "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
+                "restart_path": "",
                 "results_dir": m_rslv_results_dir(),
             },
         )
