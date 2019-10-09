@@ -124,10 +124,10 @@ class TestParser:
         assert parser._actions[4].default is False
         assert parser._actions[4].help
 
-    def test_run_date_option(self, run_cmd):
+    def test_start_date_option(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        assert parser._actions[5].dest == "run_date"
-        assert parser._actions[5].option_strings == ["--run-date"]
+        assert parser._actions[5].dest == "start_date"
+        assert parser._actions[5].option_strings == ["--start-date"]
         assert parser._actions[5].type == wwatch3_cmd.run.Run._arrow_date
         assert parser._actions[5].default == arrow.now().floor("day")
         assert parser._actions[5].help
@@ -139,6 +139,7 @@ class TestParser:
         assert parsed_args.results_dir == Path("results/foo/")
         assert not parsed_args.no_submit
         assert not parsed_args.quiet
+        assert parsed_args.start_date == arrow.now().floor("day")
 
     @pytest.mark.parametrize("flag", ["-q", "--quiet"])
     def test_parsed_args_quiet_options(self, flag, run_cmd):
@@ -151,6 +152,13 @@ class TestParser:
         parsed_args = parser.parse_args(["foo.yaml", "results/foo/", "--no-submit"])
         assert parsed_args.no_submit is True
 
+    def test_parsed_args_start_date_option(self, run_cmd):
+        parser = run_cmd.get_parser("wwatch3 run")
+        parsed_args = parser.parse_args(
+            ["foo.yaml", "results/foo/", "--start-date", "2019-10-09"]
+        )
+        assert parsed_args.start_date == arrow.get("2019-10-09")
+
 
 @patch("wwatch3_cmd.run.logger", autospec=True)
 class TestTakeAction:
@@ -159,13 +167,13 @@ class TestTakeAction:
 
     @patch("wwatch3_cmd.run.run", return_value="submit job msg", autospec=True)
     def test_take_action(self, m_run, m_logger, run_cmd):
-        run_date = arrow.get("2019-10-07")
+        start_date = arrow.get("2019-10-07")
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             results_dir=Path("results dir"),
             no_submit=False,
             quiet=False,
-            run_date=run_date,
+            start_date=start_date,
         )
         run_cmd.take_action(parsed_args)
         m_run.assert_called_once_with(
@@ -173,7 +181,7 @@ class TestTakeAction:
             Path("results dir"),
             no_submit=False,
             quiet=False,
-            run_date=run_date,
+            start_date=start_date,
         )
         m_logger.info.assert_called_once_with("submit job msg")
 
@@ -184,7 +192,7 @@ class TestTakeAction:
             results_dir=Path("results dir"),
             no_submit=False,
             quiet=True,
-            run_date=arrow.get("2019-10-07"),
+            start_date=arrow.get("2019-10-07"),
         )
         run_cmd.take_action(parsed_args)
         assert not m_logger.info.called
@@ -196,7 +204,7 @@ class TestTakeAction:
             results_dir=Path("results dir"),
             no_submit=True,
             quiet=True,
-            run_date=arrow.get("2019-10-07"),
+            start_date=arrow.get("2019-10-07"),
         )
         run_cmd.take_action(parsed_args)
         assert not m_logger.info.called
@@ -231,7 +239,7 @@ class TestRun:
         submit_job_msg = wwatch3_cmd.run.run(
             tmp_path / "wwatch3.yaml",
             results_dir,
-            run_date=arrow.get("2019-10-07"),
+            start_date=arrow.get("2019-10-07"),
             no_submit=True,
         )
         assert m_rslv_results_dir().mkdir.called
@@ -252,7 +260,7 @@ class TestRun:
         results_dir = tmp_path / "results_dir"
         m_subproc_run().stdout = "submit_job_msg"
         submit_job_msg = wwatch3_cmd.run.run(
-            tmp_path / "wwatch3.yaml", results_dir, run_date=arrow.get("2019-10-07")
+            tmp_path / "wwatch3.yaml", results_dir, start_date=arrow.get("2019-10-07")
         )
         assert m_rslv_results_dir().mkdir.called
         assert m_subproc_run.call_args_list[1] == call(
@@ -275,8 +283,8 @@ class TestRun:
         tmp_path,
     ):
         results_dir = tmp_path / "results_dir"
-        run_date = arrow.get("2019-10-07")
-        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, run_date)
+        start_date = arrow.get("2019-10-07")
+        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
         m_cookiecutter.assert_called_once_with(
             os.fspath(Path(__file__).parent.parent / "cookiecutter"),
             no_input=True,
@@ -286,8 +294,8 @@ class TestRun:
                 "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": "SoGwaves",
                 "runs_dir": Path(run_desc["paths"]["runs directory"]),
-                "run_start_date_yyyymmdd": run_date.format("YYYYMMDD"),
-                "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYYMMDD"),
+                "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
+                "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
                 "mod_def_ww3_path": Path(run_desc["grid"]["mod_def.ww3 file"]),
                 "current_forcing_dir": Path(run_desc["forcing"]["current"]),
                 "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
@@ -308,12 +316,12 @@ class TestRun:
         tmp_path,
     ):
         results_dir = tmp_path / "results_dir"
-        run_date = arrow.get("2019-10-07")
+        start_date = arrow.get("2019-10-07")
         with patch.dict(run_desc, {"restart": {"not restart.ww3": "whatever"}}):
             # **Must use open() here because Path.open() is patched**
             with open(tmp_path / "wwatch3.yaml", "wt") as f:
                 yaml.safe_dump(run_desc, f)
-            wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, run_date)
+            wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
         m_cookiecutter.assert_called_once_with(
             os.fspath(Path(__file__).parent.parent / "cookiecutter"),
             no_input=True,
@@ -323,8 +331,8 @@ class TestRun:
                 "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": "SoGwaves",
                 "runs_dir": Path(run_desc["paths"]["runs directory"]),
-                "run_start_date_yyyymmdd": run_date.format("YYYYMMDD"),
-                "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYYMMDD"),
+                "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
+                "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
                 "mod_def_ww3_path": Path(run_desc["grid"]["mod_def.ww3 file"]),
                 "current_forcing_dir": Path(run_desc["forcing"]["current"]),
                 "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
