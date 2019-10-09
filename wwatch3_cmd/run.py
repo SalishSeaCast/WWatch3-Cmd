@@ -29,6 +29,7 @@ import arrow.parser
 import cliff.command
 import cookiecutter.main
 import nemo_cmd.prepare
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -170,24 +171,28 @@ def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
         run_desc, ("forcing", "wind"), resolve_path=True
     )
     results_dir = _resolve_results_dir(results_dir)
-    tmp_run_dir = cookiecutter.main.cookiecutter(
-        os.fspath(Path(__file__).parent.parent / "cookiecutter"),
-        no_input=True,
-        output_dir=runs_dir,
-        extra_context={
-            "batch_directives": _sbatch_directives(run_desc, results_dir),
-            "module_loads": "module load netcdf-fortran-mpi/4.4.4",
-            "run_id": run_id,
-            "runs_dir": runs_dir,
-            "run_start_date_yyyymmdd": run_date.format("YYYYMMDD"),
-            "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYYMMDD"),
-            "mod_def_ww3_path": mod_def_ww3_path,
-            "current_forcing_dir": current_forcing_dir,
-            "wind_forcing_dir": wind_forcing_dir,
-            "results_dir": results_dir,
-        },
+    tmp_run_dir = Path(
+        cookiecutter.main.cookiecutter(
+            os.fspath(Path(__file__).parent.parent / "cookiecutter"),
+            no_input=True,
+            output_dir=runs_dir,
+            extra_context={
+                "batch_directives": _sbatch_directives(run_desc, results_dir),
+                "module_loads": "module load netcdf-fortran-mpi/4.4.4",
+                "run_id": run_id,
+                "runs_dir": runs_dir,
+                "run_start_date_yyyymmdd": run_date.format("YYYYMMDD"),
+                "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYYMMDD"),
+                "mod_def_ww3_path": mod_def_ww3_path,
+                "current_forcing_dir": current_forcing_dir,
+                "wind_forcing_dir": wind_forcing_dir,
+                "results_dir": results_dir,
+            },
+        )
     )
-    run_script_file = Path(tmp_run_dir) / "SoGWW3.sh"
+    with (tmp_run_dir / desc_file.name).open("wt") as f:
+        yaml.safe_dump(run_desc, f, default_flow_style=False)
+    run_script_file = tmp_run_dir / "SoGWW3.sh"
     if not quiet:
         logger.info(f"Created temporary run directory {tmp_run_dir}")
         logger.info(f"Wrote job run script to {run_script_file}")
