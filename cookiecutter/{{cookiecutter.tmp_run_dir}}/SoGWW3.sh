@@ -41,7 +41,6 @@ echo "Starting netCDF4 fields output at $(date)"
 ${WW3_EXE}/ww3_ounf && \
 mv SoG_ww3_fields_{{ cookiecutter.run_start_date_yyyymmdd }}.nc \
   SoG_ww3_fields_{{ cookiecutter.run_start_date_yyyymmdd }}_{{ cookiecutter.run_start_date_yyyymmdd }}.nc && \
-rm SoG_ww3_fields_{{ cookiecutter.run_start_date_yyyymmdd }}.nc && \
 rm out_grd.ww3
 echo "Ending netCDF4 fields output at $(date)"
 
