@@ -206,12 +206,14 @@ class TestTakeAction:
     return_value="tmp_run_dir",
     autospec=True,
 )
+@patch("wwatch3_cmd.run.Path.open", autospec=True)
 class TestRun:
     """Unit tests for `wwatch3 run` run() function.
     """
 
     def test_no_submit(
         self,
+        m_open,
         m_cookiecutter,
         m_sbatch_dir,
         m_rslv_results_dir,
@@ -233,6 +235,7 @@ class TestRun:
 
     def test_submit(
         self,
+        m_open,
         m_cookiecutter,
         m_sbatch_dir,
         m_rslv_results_dir,
@@ -257,6 +260,7 @@ class TestRun:
 
     def test_cookiecutter(
         self,
+        m_open,
         m_cookiecutter,
         m_sbatch_dir,
         m_rslv_results_dir,
