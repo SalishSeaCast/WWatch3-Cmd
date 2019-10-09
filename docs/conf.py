@@ -55,7 +55,8 @@ release = wwatch3_cmd.__version__
 extensions = ["sphinx.ext.intersphinx"]
 
 intersphinx_mapping = {
-    "salishseanowcast": ("https://salishsea-nowcast.readthedocs.io/en/latest/", None)
+    "nemocmd": ("http://nemo-cmd.readthedocs.io/en/latest/", None),
+    "salishseanowcast": ("https://salishsea-nowcast.readthedocs.io/en/latest/", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
