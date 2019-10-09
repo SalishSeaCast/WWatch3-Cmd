@@ -36,13 +36,13 @@ The command :kbd:`wwatch3 help` produces a list of the available :program:`wwatc
 
   Commands:
     complete       print bash completion command (cliff)
+    gather         Gather results from a NEMO run. (NEMO-Cmd)
     help           print detailed help for another command (cliff)
     run            Prepare, execute, and gather results from a WaveWatch III® model run.
 
 For details of the arguments and options for a sub-command use
 :command:`wwatch3 help <sub-command>`.
 For example:
-
 
 .. code-block:: bash
 
@@ -76,6 +76,9 @@ For example:
                            message
       --run-date RUN_DATE  Date to execute the run for. Use YYYY-MM-DD format.
                            Defaults to 2019-10-07.
+
+If a sub-command prints an error message,
+you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
 
 
 .. _wwatch3-run:
@@ -116,3 +119,28 @@ The results are gathered in the results directory that is also provided on the c
                          message
     --run-date RUN_DATE  Date to execute the run for. Use YYYY-MM-DD format.
                          Defaults to 2019-10-07.
+
+If the :command:`run` sub-command prints an error message,
+you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
+
+
+.. _wwatch3-gather:
+
+:kbd:`gather` Sub-command
+=========================
+
+The :command:`gather` sub-command moves results from a WaveWatch III® run into a results directory.
+It is provided by the `NEMO-Cmd`_ package.
+Please use:
+
+.. code-block:: bash
+
+    $ wwatch3 help gather
+
+to see its usage,
+and see :ref:`nemocmd:nemo-gather` for more details.
+
+.. _NEMO-Cmd: https://bitbucket.org/salishsea/nemo-cmd
+
+If the :command:`gather` sub-command prints an error message,
+you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.

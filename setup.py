@@ -22,6 +22,6 @@ setuptools.setup(
         # The wwatch3 command:
         "console_scripts": ["wwatch3 = wwatch3_cmd.main:main"],
         # Sub-command plug-ins:
-        "wwatch3.app": ["run = wwatch3_cmd.run:Run"],
+        "wwatch3.app": ["gather = nemo_cmd.gather:Gather", "run = wwatch3_cmd.run:Run"],
     }
 )
