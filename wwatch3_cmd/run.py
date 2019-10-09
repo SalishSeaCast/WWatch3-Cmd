@@ -170,6 +170,12 @@ def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
     wind_forcing_dir = nemo_cmd.prepare.get_run_desc_value(
         run_desc, ("forcing", "wind"), resolve_path=True
     )
+    try:
+        restart_path = nemo_cmd.prepare.get_run_desc_value(
+            run_desc, ("restart", "restart.ww3"), resolve_path=True, fatal=False
+        )
+    except KeyError:
+        restart_path = ""
     results_dir = _resolve_results_dir(results_dir)
     tmp_run_dir = Path(
         cookiecutter.main.cookiecutter(
@@ -186,6 +192,7 @@ def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
                 "mod_def_ww3_path": mod_def_ww3_path,
                 "current_forcing_dir": current_forcing_dir,
                 "wind_forcing_dir": wind_forcing_dir,
+                "restart_path": restart_path,
                 "results_dir": results_dir,
             },
         )
