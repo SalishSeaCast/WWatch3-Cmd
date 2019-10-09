@@ -78,11 +78,11 @@ class Run(cliff.command.Command):
             help="don't show the run directory path or job submission message",
         )
         parser.add_argument(
-            "--run-date",
+            "--start-date",
             type=self._arrow_date,
             default=arrow.now().floor("day"),
             help=(
-                f"Date to execute the run for. Use YYYY-MM-DD format. "
+                f"Date to start run execution on. Use YYYY-MM-DD format. "
                 f"Defaults to {arrow.now().floor('day').format('YYYY-MM-DD')}."
             ),
         )
@@ -119,7 +119,7 @@ class Run(cliff.command.Command):
         submit_job_msg = run(
             parsed_args.desc_file,
             parsed_args.results_dir,
-            parsed_args.run_date,
+            parsed_args.start_date,
             no_submit=parsed_args.no_submit,
             quiet=parsed_args.quiet,
         )
@@ -127,7 +127,7 @@ class Run(cliff.command.Command):
             logger.info(submit_job_msg)
 
 
-def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
+def run(desc_file, results_dir, start_date, no_submit=False, quiet=False):
     """Create and populate a temporary run directory, and a run script,
     and submit the run to the queue manager.
 
@@ -141,7 +141,7 @@ def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
                         it will be created if it does not exist.
     :type results_dir: :py:class:`pathlib.Path`
 
-    :param run_date: Date to execute run for.
+    :param start_date: Date to start run execution on.
     :type :py:class:`arrow.Arrow`:
 
     :param boolean no_submit: Prepare the temporary run directory,
@@ -187,8 +187,8 @@ def run(desc_file, results_dir, run_date, no_submit=False, quiet=False):
                 "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": run_id,
                 "runs_dir": runs_dir,
-                "run_start_date_yyyymmdd": run_date.format("YYYYMMDD"),
-                "run_end_date_yyyymmdd": run_date.shift(days=+1).format("YYYYMMDD"),
+                "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
+                "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
                 "mod_def_ww3_path": mod_def_ww3_path,
                 "current_forcing_dir": current_forcing_dir,
                 "wind_forcing_dir": wind_forcing_dir,
