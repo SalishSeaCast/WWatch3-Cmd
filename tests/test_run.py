@@ -20,18 +20,19 @@ from pathlib import Path
 import subprocess
 import textwrap
 from types import SimpleNamespace
-from unittest.mock import Mock, patch, call
+from unittest.mock import call, patch
 
 import arrow
 import pytest
 import yaml
 
+import wwatch3_cmd.main
 import wwatch3_cmd.run
 
 
 @pytest.fixture
 def run_cmd():
-    return wwatch3_cmd.run.Run(Mock(spec=True), [])
+    return wwatch3_cmd.run.Run(wwatch3_cmd.main.WWatch3App, [])
 
 
 @pytest.fixture()
