@@ -197,8 +197,7 @@ def run(desc_file, results_dir, start_date, no_submit=False, quiet=False):
             },
         )
     )
-    with (tmp_run_dir / desc_file.name).open("wt") as f:
-        yaml.safe_dump(run_desc, f, default_flow_style=False)
+    _write_tmp_run_dir_run_desc(run_desc, tmp_run_dir, desc_file)
     run_script_file = tmp_run_dir / "SoGWW3.sh"
     if not quiet:
         logger.info(f"Created temporary run directory {tmp_run_dir}")
@@ -214,6 +213,24 @@ def run(desc_file, results_dir, start_date, no_submit=False, quiet=False):
         stdout=subprocess.PIPE,
     ).stdout
     return submit_job_msg
+
+
+def _write_tmp_run_dir_run_desc(run_desc, tmp_run_dir, desc_file):
+    """Write the run description to a YAML file in the temporary run directory
+    so that it is preserved with the run results.
+
+    Extracted into a separate function to improve testability of the run() function.
+
+    :param dict run_desc: Contents of run description file parsed from YAML into a dict.
+
+    :param tmp_run_dir: Temporary directory generated for the run.
+    :type tmp_run_dir: :py:class:`pathlib.Path`
+
+    :param desc_file: File path/name of the YAML run description file.
+    :type desc_file: :py:class:`pathlib.Path`
+    """
+    with (tmp_run_dir / desc_file.name).open("wt") as f:
+        yaml.safe_dump(run_desc, f, default_flow_style=False)
 
 
 def _resolve_results_dir(results_dir):
