@@ -17,12 +17,12 @@
 import logging
 import os
 from pathlib import Path
-import subprocess
 import textwrap
 from types import SimpleNamespace
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import arrow
+import attr
 import pytest
 import yaml
 
@@ -166,8 +166,15 @@ class TestTakeAction:
     """Unit tests for `wwatch3 run` sub-command take_action() method.
     """
 
-    @patch("wwatch3_cmd.run.run", return_value="submit job msg", autospec=True)
-    def test_take_action(self, m_run, run_cmd, caplog):
+    @staticmethod
+    @pytest.fixture
+    def mock_run_submit_return(monkeypatch):
+        def mock_run_return(*args, **kwargs):
+            return "submit job msg"
+
+        monkeypatch.setattr(wwatch3_cmd.run, "run", mock_run_return)
+
+    def test_take_action(self, mock_run_submit_return, run_cmd, caplog):
         start_date = arrow.get("2019-10-07")
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
@@ -178,17 +185,9 @@ class TestTakeAction:
         )
         caplog.set_level(logging.INFO)
         run_cmd.take_action(parsed_args)
-        m_run.assert_called_once_with(
-            Path("desc file"),
-            Path("results dir"),
-            no_submit=False,
-            quiet=False,
-            start_date=start_date,
-        )
         assert caplog.messages[0] == "submit job msg"
 
-    @patch("wwatch3_cmd.run.run", return_value="submit job msg", autospec=True)
-    def test_take_action_quiet(self, m_run, run_cmd, caplog):
+    def test_take_action_quiet(self, mock_run_submit_return, run_cmd, caplog):
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             results_dir=Path("results dir"),
@@ -200,40 +199,69 @@ class TestTakeAction:
         run_cmd.take_action(parsed_args)
         assert not caplog.messages
 
-    @patch("wwatch3_cmd.run.run", return_value=None, autospec=True)
-    def test_take_action_no_submit(self, m_run, run_cmd, caplog):
+    def test_take_action_no_submit(self, run_cmd, caplog, monkeypatch):
+        def mock_run_no_submit_return(*args, **kwargs):
+            return None
+
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             results_dir=Path("results dir"),
             no_submit=True,
-            quiet=True,
+            quiet=False,
             start_date=arrow.get("2019-10-07"),
         )
         caplog.set_level(logging.INFO)
+        monkeypatch.setattr(wwatch3_cmd.run, "run", mock_run_no_submit_return)
         run_cmd.take_action(parsed_args)
         assert not caplog.messages
 
 
-@patch("wwatch3_cmd.run.subprocess.run", autospec=True)
-@patch("wwatch3_cmd.run._resolve_results_dir", spec=True)
-@patch("wwatch3_cmd.run._sbatch_directives", spec=True)
 @patch(
     "wwatch3_cmd.run.cookiecutter.main.cookiecutter",
     return_value="tmp_run_dir",
     autospec=True,
 )
-@patch("wwatch3_cmd.run.Path.open", autospec=True)
 class TestRun:
     """Unit tests for `wwatch3 run` run() function.
     """
 
+    @staticmethod
+    @pytest.fixture
+    def mock_subprocess_stdout(monkeypatch):
+        @attr.s
+        class MockCompletedProcess:
+            stdout = attr.ib(default="submit_job_msg")
+
+        def mock_completed_process_stdout(*args, **kwargs):
+            return MockCompletedProcess()
+
+        monkeypatch.setattr(
+            wwatch3_cmd.run.subprocess, "run", mock_completed_process_stdout
+        )
+
+    @staticmethod
+    @pytest.fixture
+    def mock_load_run_desc_return(run_desc, monkeypatch):
+        def mock_return(*args):
+            return run_desc
+
+        monkeypatch.setattr(
+            wwatch3_cmd.run.nemo_cmd.prepare, "load_run_desc", mock_return
+        )
+
+    @staticmethod
+    @pytest.fixture
+    def mock_write_tmp_run_dir_run_desc(monkeypatch):
+        def mock_write(*args):
+            pass
+
+        monkeypatch.setattr(wwatch3_cmd.run, "_write_tmp_run_dir_run_desc", mock_write)
+
     def test_no_submit(
         self,
-        m_open,
         m_cookiecutter,
-        m_sbatch_dir,
-        m_rslv_results_dir,
-        m_subproc_run,
+        mock_load_run_desc_return,
+        mock_write_tmp_run_dir_run_desc,
         run_desc,
         tmp_path,
     ):
@@ -244,41 +272,29 @@ class TestRun:
             start_date=arrow.get("2019-10-07"),
             no_submit=True,
         )
-        assert m_rslv_results_dir().mkdir.called
-        assert not m_subproc_run.called
         assert submit_job_msg is None
 
     def test_submit(
         self,
-        m_open,
         m_cookiecutter,
-        m_sbatch_dir,
-        m_rslv_results_dir,
-        m_subproc_run,
+        mock_load_run_desc_return,
+        mock_write_tmp_run_dir_run_desc,
+        mock_subprocess_stdout,
         run_desc,
         tmp_path,
     ):
         results_dir = tmp_path / "results_dir"
-        m_subproc_run().stdout = "submit_job_msg"
         submit_job_msg = wwatch3_cmd.run.run(
             tmp_path / "wwatch3.yaml", results_dir, start_date=arrow.get("2019-10-07")
-        )
-        assert m_rslv_results_dir().mkdir.called
-        assert m_subproc_run.call_args_list[1] == call(
-            ["sbatch", "tmp_run_dir/SoGWW3.sh"],
-            check=True,
-            universal_newlines=True,
-            stdout=subprocess.PIPE,
         )
         assert submit_job_msg == "submit_job_msg"
 
     def test_cookiecutter(
         self,
-        m_open,
         m_cookiecutter,
-        m_sbatch_dir,
-        m_rslv_results_dir,
-        m_subproc_run,
+        mock_load_run_desc_return,
+        mock_write_tmp_run_dir_run_desc,
+        mock_subprocess_stdout,
         run_desc,
         tmp_path,
     ):
@@ -290,7 +306,9 @@ class TestRun:
             no_input=True,
             output_dir=Path(run_desc["paths"]["runs directory"]),
             extra_context={
-                "batch_directives": m_sbatch_dir(run_desc),
+                "batch_directives": wwatch3_cmd.run._sbatch_directives(
+                    run_desc, results_dir
+                ),
                 "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": "SoGwaves",
                 "runs_dir": Path(run_desc["paths"]["runs directory"]),
@@ -300,33 +318,38 @@ class TestRun:
                 "current_forcing_dir": Path(run_desc["forcing"]["current"]),
                 "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
                 "restart_path": Path(run_desc["restart"]["restart.ww3"]),
-                "results_dir": m_rslv_results_dir(),
+                "results_dir": results_dir,
             },
         )
 
     def test_cookiecutter_no_restart(
         self,
-        m_open,
         m_cookiecutter,
-        m_sbatch_dir,
-        m_rslv_results_dir,
-        m_subproc_run,
+        mock_write_tmp_run_dir_run_desc,
+        mock_subprocess_stdout,
         run_desc,
         tmp_path,
+        monkeypatch,
     ):
+        def mock_load_run_desc_return(*args):
+            monkeypatch.delitem(run_desc, "restart")
+            return run_desc
+
+        monkeypatch.setattr(
+            wwatch3_cmd.run.nemo_cmd.prepare, "load_run_desc", mock_load_run_desc_return
+        )
+
         results_dir = tmp_path / "results_dir"
         start_date = arrow.get("2019-10-07")
-        with patch.dict(run_desc, {"restart": {"not restart.ww3": "whatever"}}):
-            # **Must use open() here because Path.open() is patched**
-            with open(tmp_path / "wwatch3.yaml", "wt") as f:
-                yaml.safe_dump(run_desc, f)
-            wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
+        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
         m_cookiecutter.assert_called_once_with(
             os.fspath(Path(__file__).parent.parent / "cookiecutter"),
             no_input=True,
             output_dir=Path(run_desc["paths"]["runs directory"]),
             extra_context={
-                "batch_directives": m_sbatch_dir(run_desc),
+                "batch_directives": wwatch3_cmd.run._sbatch_directives(
+                    run_desc, results_dir
+                ),
                 "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": "SoGwaves",
                 "runs_dir": Path(run_desc["paths"]["runs directory"]),
@@ -336,7 +359,7 @@ class TestRun:
                 "current_forcing_dir": Path(run_desc["forcing"]["current"]),
                 "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
                 "restart_path": "",
-                "results_dir": m_rslv_results_dir(),
+                "results_dir": results_dir,
             },
         )
 
