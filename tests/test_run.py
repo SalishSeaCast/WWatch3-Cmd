@@ -14,6 +14,7 @@
 #  limitations under the License.
 """WWatch3-Cmd run sub-command plug-in unit tests.
 """
+import logging
 import os
 from pathlib import Path
 import subprocess
@@ -160,13 +161,12 @@ class TestParser:
         assert parsed_args.start_date == arrow.get("2019-10-09")
 
 
-@patch("wwatch3_cmd.run.logger", autospec=True)
 class TestTakeAction:
     """Unit tests for `wwatch3 run` sub-command take_action() method.
     """
 
     @patch("wwatch3_cmd.run.run", return_value="submit job msg", autospec=True)
-    def test_take_action(self, m_run, m_logger, run_cmd):
+    def test_take_action(self, m_run, run_cmd, caplog):
         start_date = arrow.get("2019-10-07")
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
@@ -175,6 +175,7 @@ class TestTakeAction:
             quiet=False,
             start_date=start_date,
         )
+        caplog.set_level(logging.INFO)
         run_cmd.take_action(parsed_args)
         m_run.assert_called_once_with(
             Path("desc file"),
@@ -183,10 +184,10 @@ class TestTakeAction:
             quiet=False,
             start_date=start_date,
         )
-        m_logger.info.assert_called_once_with("submit job msg")
+        assert caplog.messages[0] == "submit job msg"
 
     @patch("wwatch3_cmd.run.run", return_value="submit job msg", autospec=True)
-    def test_take_action_quiet(self, m_run, m_logger, run_cmd):
+    def test_take_action_quiet(self, m_run, run_cmd, caplog):
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             results_dir=Path("results dir"),
@@ -194,11 +195,12 @@ class TestTakeAction:
             quiet=True,
             start_date=arrow.get("2019-10-07"),
         )
+        caplog.set_level(logging.INFO)
         run_cmd.take_action(parsed_args)
-        assert not m_logger.info.called
+        assert not caplog.messages
 
     @patch("wwatch3_cmd.run.run", return_value=None, autospec=True)
-    def test_take_action_no_submit(self, m_run, m_logger, run_cmd):
+    def test_take_action_no_submit(self, m_run, run_cmd, caplog):
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             results_dir=Path("results dir"),
@@ -206,11 +208,11 @@ class TestTakeAction:
             quiet=True,
             start_date=arrow.get("2019-10-07"),
         )
+        caplog.set_level(logging.INFO)
         run_cmd.take_action(parsed_args)
-        assert not m_logger.info.called
+        assert not caplog.messages
 
 
-@patch("wwatch3_cmd.run.logger", autospec=True)
 @patch("wwatch3_cmd.run.subprocess.run", autospec=True)
 @patch("wwatch3_cmd.run._resolve_results_dir", spec=True)
 @patch("wwatch3_cmd.run._sbatch_directives", spec=True)
@@ -231,7 +233,6 @@ class TestRun:
         m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
-        m_logger,
         run_desc,
         tmp_path,
     ):
@@ -253,7 +254,6 @@ class TestRun:
         m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
-        m_logger,
         run_desc,
         tmp_path,
     ):
@@ -278,7 +278,6 @@ class TestRun:
         m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
-        m_logger,
         run_desc,
         tmp_path,
     ):
@@ -311,7 +310,6 @@ class TestRun:
         m_sbatch_dir,
         m_rslv_results_dir,
         m_subproc_run,
-        m_logger,
         run_desc,
         tmp_path,
     ):
