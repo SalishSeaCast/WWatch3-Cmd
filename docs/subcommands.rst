@@ -51,7 +51,7 @@ For example:
 ::
 
     usage: wwatch3 run [-h] [--no-submit] [-q] [--start-date START_DATE]
-                       DESC_FILE RESULTS_DIR
+                       DESC_FILE WALLTIME RESULTS_DIR
 
     Prepare, execute, and gather the results from a WaveWatch III® run described
     in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
@@ -59,6 +59,8 @@ For example:
 
     positional arguments:
       DESC_FILE             run description YAML file
+      WALLTIME              HPC batch job walltime for the run; formatted as
+                            HH:MM:SS
       RESULTS_DIR           directory to store results into
 
     optional arguments:
@@ -76,7 +78,7 @@ For example:
                             message
       --start-date START_DATE
                             Date to start run execution on. Use YYYY-MM-DD format.
-                            Defaults to 2019-10-09.
+                            Defaults to 2019-10-14.
 
 If a sub-command prints an error message,
 you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
@@ -95,7 +97,7 @@ The results are gathered in the results directory that is also provided on the c
 ::
 
   usage: wwatch3 run [-h] [--no-submit] [-q] [--start-date START_DATE]
-                     DESC_FILE RESULTS_DIR
+                     DESC_FILE WALLTIME RESULTS_DIR
 
   Prepare, execute, and gather the results from a WaveWatch III® run described
   in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
@@ -103,6 +105,8 @@ The results are gathered in the results directory that is also provided on the c
 
   positional arguments:
     DESC_FILE             run description YAML file
+    WALLTIME              HPC batch job walltime for the run; formatted as
+                          HH:MM:SS
     RESULTS_DIR           directory to store results into
 
   optional arguments:
@@ -120,7 +124,7 @@ The results are gathered in the results directory that is also provided on the c
                           message
     --start-date START_DATE
                           Date to start run execution on. Use YYYY-MM-DD format.
-                          Defaults to 2019-10-09.
+                          Defaults to 2019-10-14.
 
 If the :command:`run` sub-command prints an error message,
 you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
