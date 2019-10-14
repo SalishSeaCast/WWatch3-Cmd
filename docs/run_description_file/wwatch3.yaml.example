@@ -11,11 +11,6 @@ run_id: SoGwaves
 email: you@example.com
 # Account name to charge resources used by the job to
 account: def-allen
-# Maximum run time requested/allowed for job
-# Too low and you job will be terminated before it finishes
-# Too high and you will have to wait longer on the queue for your job to start
-# You have to experiment to find the "just right" value
-walltime: 00:20:00
 
 
 

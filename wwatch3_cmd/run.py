@@ -54,6 +54,12 @@ class Run(cliff.command.Command):
             help="run description YAML file",
         )
         parser.add_argument(
+            "walltime",
+            metavar="WALLTIME",
+            type=str,
+            help="HPC batch job walltime for the run; formatted as HH:MM:SS",
+        )
+        parser.add_argument(
             "results_dir",
             metavar="RESULTS_DIR",
             type=Path,
@@ -81,10 +87,10 @@ class Run(cliff.command.Command):
             "--start-date",
             type=self._arrow_date,
             default=arrow.now().floor("day"),
-            help=(
-                f"Date to start run execution on. Use YYYY-MM-DD format. "
-                f"Defaults to {arrow.now().floor('day').format('YYYY-MM-DD')}."
-            ),
+            help=f"""
+                Date to start run execution on. Use YYYY-MM-DD format.
+                Defaults to {arrow.now().floor('day').format('YYYY-MM-DD')}.
+                """,
         )
         return parser
 
@@ -120,6 +126,7 @@ class Run(cliff.command.Command):
             parsed_args.desc_file,
             parsed_args.results_dir,
             parsed_args.start_date,
+            parsed_args.walltime,
             no_submit=parsed_args.no_submit,
             quiet=parsed_args.quiet,
         )
@@ -127,7 +134,7 @@ class Run(cliff.command.Command):
             logger.info(submit_job_msg)
 
 
-def run(desc_file, results_dir, start_date, no_submit=False, quiet=False):
+def run(desc_file, results_dir, start_date, walltime, no_submit=False, quiet=False):
     """Create and populate a temporary run directory, and a run script,
     and submit the run to the queue manager.
 
@@ -143,6 +150,9 @@ def run(desc_file, results_dir, start_date, no_submit=False, quiet=False):
 
     :param start_date: Date to start run execution on.
     :type :py:class:`arrow.Arrow`:
+
+    :param str walltime: HPC batch job walltime to use for the run;
+                         formatted as :kbd:`HH:MM:SS`.
 
     :param boolean no_submit: Prepare the temporary run directory,
                               and the run script to execute the WaveWatch III® run,
@@ -183,7 +193,7 @@ def run(desc_file, results_dir, start_date, no_submit=False, quiet=False):
             no_input=True,
             output_dir=runs_dir,
             extra_context={
-                "batch_directives": _sbatch_directives(run_desc, results_dir),
+                "batch_directives": _sbatch_directives(run_desc, results_dir, walltime),
                 "module_loads": "module load netcdf-fortran-mpi/4.4.4",
                 "run_id": run_id,
                 "runs_dir": runs_dir,
@@ -247,7 +257,7 @@ def _resolve_results_dir(results_dir):
     return results_dir
 
 
-def _sbatch_directives(run_desc, results_dir):
+def _sbatch_directives(run_desc, results_dir, walltime):
     run_id = nemo_cmd.prepare.get_run_desc_value(run_desc, ("run_id",))
     sbatch_directives = textwrap.dedent(
         f"""\
@@ -259,7 +269,7 @@ def _sbatch_directives(run_desc, results_dir):
         #SBATCH --nodes=1
         #SBATCH --ntasks-per-node=48
         #SBATCH --mem=0
-        #SBATCH --time={nemo_cmd.prepare.get_run_desc_value(run_desc, ("walltime",))}
+        #SBATCH --time={walltime}
         # stdout and stderr file paths/names
         #SBATCH --output={results_dir/"stdout"}
         #SBATCH --error={results_dir/"stderr"}

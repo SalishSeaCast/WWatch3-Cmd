@@ -116,42 +116,50 @@ class TestParser:
         assert parser._actions[1].type == Path
         assert parser._actions[1].help
 
+    def test_walltime_argument(self, run_cmd):
+        parser = run_cmd.get_parser("wwatch3 run")
+        assert parser._actions[2].dest == "walltime"
+        assert parser._actions[2].metavar == "WALLTIME"
+        assert parser._actions[2].type == str
+        assert parser._actions[2].help
+
     def test_results_dir_argument(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        assert parser._actions[2].dest == "results_dir"
-        assert parser._actions[2].metavar == "RESULTS_DIR"
-        assert parser._actions[2].type == Path
-        assert parser._actions[2].help
+        assert parser._actions[3].dest == "results_dir"
+        assert parser._actions[3].metavar == "RESULTS_DIR"
+        assert parser._actions[3].type == Path
+        assert parser._actions[3].help
 
     def test_no_submit_option(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        assert parser._actions[3].dest == "no_submit"
-        assert parser._actions[3].option_strings == ["--no-submit"]
-        assert parser._actions[3].const is True
-        assert parser._actions[3].default is False
-        assert parser._actions[3].help
-
-    def test_quiet_option(self, run_cmd):
-        parser = run_cmd.get_parser("wwatch3 run")
-        assert parser._actions[4].dest == "quiet"
-        assert parser._actions[4].option_strings == ["-q", "--quiet"]
+        assert parser._actions[4].dest == "no_submit"
+        assert parser._actions[4].option_strings == ["--no-submit"]
         assert parser._actions[4].const is True
         assert parser._actions[4].default is False
         assert parser._actions[4].help
 
+    def test_quiet_option(self, run_cmd):
+        parser = run_cmd.get_parser("wwatch3 run")
+        assert parser._actions[5].dest == "quiet"
+        assert parser._actions[5].option_strings == ["-q", "--quiet"]
+        assert parser._actions[5].const is True
+        assert parser._actions[5].default is False
+        assert parser._actions[5].help
+
     def test_start_date_option(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        assert parser._actions[5].dest == "start_date"
-        assert parser._actions[5].option_strings == ["--start-date"]
-        assert parser._actions[5].type == wwatch3_cmd.run.Run._arrow_date
-        assert parser._actions[5].default == arrow.now().floor("day")
-        assert parser._actions[5].help
+        assert parser._actions[6].dest == "start_date"
+        assert parser._actions[6].option_strings == ["--start-date"]
+        assert parser._actions[6].type == wwatch3_cmd.run.Run._arrow_date
+        assert parser._actions[6].default == arrow.now().floor("day")
+        assert parser._actions[6].help
 
     def test_parsed_args_defaults(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        parsed_args = parser.parse_args(["foo.yaml", "results/foo/"])
+        parsed_args = parser.parse_args(["foo.yaml", "00:20:00", "results/foo/"])
         assert parsed_args.desc_file == Path("foo.yaml")
         assert parsed_args.results_dir == Path("results/foo/")
+        assert parsed_args.walltime == "00:20:00"
         assert not parsed_args.no_submit
         assert not parsed_args.quiet
         assert parsed_args.start_date == arrow.now().floor("day")
@@ -159,18 +167,20 @@ class TestParser:
     @pytest.mark.parametrize("flag", ["-q", "--quiet"])
     def test_parsed_args_quiet_options(self, flag, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        parsed_args = parser.parse_args(["foo.yaml", "results/foo/", flag])
+        parsed_args = parser.parse_args(["foo.yaml", "00:20:00", "results/foo/", flag])
         assert parsed_args.quiet is True
 
     def test_parsed_args_no_submit_option(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
-        parsed_args = parser.parse_args(["foo.yaml", "results/foo/", "--no-submit"])
+        parsed_args = parser.parse_args(
+            ["foo.yaml", "00:20:00", "results/foo/", "--no-submit"]
+        )
         assert parsed_args.no_submit is True
 
     def test_parsed_args_start_date_option(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
         parsed_args = parser.parse_args(
-            ["foo.yaml", "results/foo/", "--start-date", "2019-10-09"]
+            ["foo.yaml", "00:20:00", "results/foo/", "--start-date", "2019-10-09"]
         )
         assert parsed_args.start_date == arrow.get("2019-10-09")
 
@@ -191,6 +201,7 @@ class TestTakeAction:
         start_date = arrow.get("2019-10-07")
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
+            walltime="00:20:00",
             results_dir=Path("results dir"),
             no_submit=False,
             quiet=False,
@@ -203,6 +214,7 @@ class TestTakeAction:
     def test_take_action_quiet(self, mock_run_submit_return, run_cmd, caplog):
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
+            walltime="00:20:00",
             results_dir=Path("results dir"),
             no_submit=False,
             quiet=True,
@@ -218,6 +230,7 @@ class TestTakeAction:
 
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
+            walltime="00:20:00",
             results_dir=Path("results dir"),
             no_submit=True,
             quiet=False,
@@ -263,6 +276,7 @@ class TestRun:
             tmp_path / "wwatch3.yaml",
             results_dir,
             start_date=arrow.get("2019-10-07"),
+            walltime="00:20:00",
             no_submit=True,
         )
         assert submit_job_msg is None
@@ -277,7 +291,10 @@ class TestRun:
     ):
         results_dir = tmp_path / "results_dir"
         submit_job_msg = wwatch3_cmd.run.run(
-            tmp_path / "wwatch3.yaml", results_dir, start_date=arrow.get("2019-10-07")
+            tmp_path / "wwatch3.yaml",
+            results_dir,
+            start_date=arrow.get("2019-10-07"),
+            walltime="00:20:00",
         )
         assert submit_job_msg == "submit_job_msg"
 
@@ -288,7 +305,9 @@ class TestSbatchDirectives:
 
     def test_sbatch_directives(self, run_desc, tmp_path):
         results_dir = tmp_path / "results_dir"
-        sbatch_directives = wwatch3_cmd.run._sbatch_directives(run_desc, results_dir)
+        sbatch_directives = wwatch3_cmd.run._sbatch_directives(
+            run_desc, results_dir, "00:20:00"
+        )
         expected = textwrap.dedent(
             f"""\
             #SBATCH --job-name={run_desc['run_id']}
@@ -318,7 +337,9 @@ class TestTmpRunDir:
         caplog.set_level(logging.INFO)
         results_dir = tmp_path / "results_dir"
         start_date = arrow.get("2019-10-13")
-        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
         tmp_run_dir = caplog.messages[0].split()[-1]
         return Path(tmp_run_dir)
 
@@ -358,7 +379,9 @@ class TestTmpRunDir:
         caplog.set_level(logging.INFO)
         results_dir = tmp_path / "results_dir"
         start_date = arrow.get("2019-10-13")
-        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
         tmp_run_dir = Path(caplog.messages[0].split()[-1])
         tmp_run_dir_links = {fp.name for fp in tmp_run_dir.iterdir() if fp.is_symlink()}
         assert tmp_run_dir_links == {"mod_def.ww3", "wind", "current"}
@@ -541,7 +564,7 @@ class TestTmpRunDir:
             f"""\
             #!/bin/bash
             
-            {wwatch3_cmd.run._sbatch_directives(run_desc, tmp_path/"results_dir")}
+            {wwatch3_cmd.run._sbatch_directives(run_desc, tmp_path / "results_dir", "00:20:00")}
             set -e  # abort on first error
             set -u  # abort if undefinded variable is encountered
             

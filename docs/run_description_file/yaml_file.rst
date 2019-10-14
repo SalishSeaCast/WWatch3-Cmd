@@ -50,12 +50,6 @@ The following key-value pairs provide the basic configuration for the run:
 
   .. _Slurm Workload Manager: https://slurm.schedmd.com/
 
-:kbd:`walltime`
-  The wall-clock time requested for the run.
-  It limits the time that the job will run for,
-  and it also affects queue priority.
-  It is important to allow some buffer time when calculating your walltime limits to allow for indeterminacy of the WaveWatch III® run.
-
 Here is an example of the basic run configuration keys and values:
 
 .. code-block:: yaml
@@ -63,7 +57,6 @@ Here is an example of the basic run configuration keys and values:
     run_id: SoGwaves
     email: you@example.com
     account: def-allen
-    walltime: 00:20:00
 
 
 .. _PathsSection:
