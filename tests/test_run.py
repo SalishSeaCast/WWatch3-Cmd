@@ -19,7 +19,6 @@ import os
 from pathlib import Path
 import textwrap
 from types import SimpleNamespace
-from unittest.mock import patch
 
 import arrow
 import attr
@@ -80,6 +79,20 @@ def run_desc(tmp_path):
     with ww3_yaml.open("rt") as f:
         run_desc = yaml.safe_load(f)
     return run_desc
+
+
+@pytest.fixture
+def mock_subprocess_stdout(monkeypatch):
+    @attr.s
+    class MockCompletedProcess:
+        stdout = attr.ib(default="submit_job_msg")
+
+    def mock_completed_process_stdout(*args, **kwargs):
+        return MockCompletedProcess()
+
+    monkeypatch.setattr(
+        wwatch3_cmd.run.subprocess, "run", mock_completed_process_stdout
+    )
 
 
 class TestParser:
@@ -216,28 +229,9 @@ class TestTakeAction:
         assert not caplog.messages
 
 
-@patch(
-    "wwatch3_cmd.run.cookiecutter.main.cookiecutter",
-    return_value="tmp_run_dir",
-    autospec=True,
-)
 class TestRun:
     """Unit tests for `wwatch3 run` run() function.
     """
-
-    @staticmethod
-    @pytest.fixture
-    def mock_subprocess_stdout(monkeypatch):
-        @attr.s
-        class MockCompletedProcess:
-            stdout = attr.ib(default="submit_job_msg")
-
-        def mock_completed_process_stdout(*args, **kwargs):
-            return MockCompletedProcess()
-
-        monkeypatch.setattr(
-            wwatch3_cmd.run.subprocess, "run", mock_completed_process_stdout
-        )
 
     @staticmethod
     @pytest.fixture
@@ -259,7 +253,6 @@ class TestRun:
 
     def test_no_submit(
         self,
-        m_cookiecutter,
         mock_load_run_desc_return,
         mock_write_tmp_run_dir_run_desc,
         run_desc,
@@ -276,7 +269,6 @@ class TestRun:
 
     def test_submit(
         self,
-        m_cookiecutter,
         mock_load_run_desc_return,
         mock_write_tmp_run_dir_run_desc,
         mock_subprocess_stdout,
@@ -289,83 +281,9 @@ class TestRun:
         )
         assert submit_job_msg == "submit_job_msg"
 
-    def test_cookiecutter(
-        self,
-        m_cookiecutter,
-        mock_load_run_desc_return,
-        mock_write_tmp_run_dir_run_desc,
-        mock_subprocess_stdout,
-        run_desc,
-        tmp_path,
-    ):
-        results_dir = tmp_path / "results_dir"
-        start_date = arrow.get("2019-10-07")
-        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
-        m_cookiecutter.assert_called_once_with(
-            os.fspath(Path(__file__).parent.parent / "cookiecutter"),
-            no_input=True,
-            output_dir=Path(run_desc["paths"]["runs directory"]),
-            extra_context={
-                "batch_directives": wwatch3_cmd.run._sbatch_directives(
-                    run_desc, results_dir
-                ),
-                "module_loads": "module load netcdf-fortran-mpi/4.4.4",
-                "run_id": "SoGwaves",
-                "runs_dir": Path(run_desc["paths"]["runs directory"]),
-                "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
-                "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
-                "mod_def_ww3_path": Path(run_desc["grid"]["mod_def.ww3 file"]),
-                "current_forcing_dir": Path(run_desc["forcing"]["current"]),
-                "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
-                "restart_path": Path(run_desc["restart"]["restart.ww3"]),
-                "results_dir": results_dir,
-            },
-        )
-
-    def test_cookiecutter_no_restart(
-        self,
-        m_cookiecutter,
-        mock_write_tmp_run_dir_run_desc,
-        mock_subprocess_stdout,
-        run_desc,
-        tmp_path,
-        monkeypatch,
-    ):
-        def mock_load_run_desc_return(*args):
-            monkeypatch.delitem(run_desc, "restart")
-            return run_desc
-
-        monkeypatch.setattr(
-            wwatch3_cmd.run.nemo_cmd.prepare, "load_run_desc", mock_load_run_desc_return
-        )
-
-        results_dir = tmp_path / "results_dir"
-        start_date = arrow.get("2019-10-07")
-        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
-        m_cookiecutter.assert_called_once_with(
-            os.fspath(Path(__file__).parent.parent / "cookiecutter"),
-            no_input=True,
-            output_dir=Path(run_desc["paths"]["runs directory"]),
-            extra_context={
-                "batch_directives": wwatch3_cmd.run._sbatch_directives(
-                    run_desc, results_dir
-                ),
-                "module_loads": "module load netcdf-fortran-mpi/4.4.4",
-                "run_id": "SoGwaves",
-                "runs_dir": Path(run_desc["paths"]["runs directory"]),
-                "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
-                "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
-                "mod_def_ww3_path": Path(run_desc["grid"]["mod_def.ww3 file"]),
-                "current_forcing_dir": Path(run_desc["forcing"]["current"]),
-                "wind_forcing_dir": Path(run_desc["forcing"]["wind"]),
-                "restart_path": "",
-                "results_dir": results_dir,
-            },
-        )
-
 
 class TestSbatchDirectives:
-    """Unit tests for _sbatch_directives() function.
+    """Unit test for _sbatch_directives() function.
     """
 
     def test_sbatch_directives(self, run_desc, tmp_path):
@@ -388,3 +306,440 @@ class TestSbatchDirectives:
             """
         )
         assert sbatch_directives == expected
+
+
+class TestTmpRunDir:
+    """Integration tests for temporary run directory generated by `wwatch3 run` sub-command.
+    """
+
+    @staticmethod
+    @pytest.fixture
+    def tmp_run_dir(mock_subprocess_stdout, tmp_path, caplog):
+        caplog.set_level(logging.INFO)
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-13")
+        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
+        tmp_run_dir = caplog.messages[0].split()[-1]
+        return Path(tmp_run_dir)
+
+    def test_tmp_run_dir_name(self, run_desc, tmp_run_dir):
+        assert tmp_run_dir.name.startswith(
+            f"{run_desc['run_id']}_{arrow.now().format('YYYY-MM-DD')}T"
+        )
+
+    def test_tmp_run_dir_files(self, run_desc, tmp_run_dir):
+        template_dir = (
+            Path(__file__).parent.parent
+            / "cookiecutter"
+            / "{{cookiecutter.tmp_run_dir}}"
+        )
+        template_files = {fp.name for fp in template_dir.iterdir()}
+        tmp_run_dir_files = {
+            fp.name
+            for fp in tmp_run_dir.iterdir()
+            if fp.is_file() and not fp.is_symlink()
+        }
+        assert tmp_run_dir_files.difference(template_files) == {"wwatch3.yaml"}
+
+    def test_tmp_run_dir_symlinks(self, run_desc, tmp_run_dir):
+        tmp_run_dir_links = {fp.name for fp in tmp_run_dir.iterdir() if fp.is_symlink()}
+        assert tmp_run_dir_links == {"mod_def.ww3", "restart.ww3", "wind", "current"}
+
+    def test_tmp_run_dir_symlinks_no_restart(
+        self, run_desc, mock_subprocess_stdout, tmp_path, caplog, monkeypatch
+    ):
+        def mock_load_run_desc_return(*args):
+            monkeypatch.delitem(run_desc, "restart")
+            return run_desc
+
+        monkeypatch.setattr(
+            wwatch3_cmd.run.nemo_cmd.prepare, "load_run_desc", mock_load_run_desc_return
+        )
+        caplog.set_level(logging.INFO)
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-13")
+        wwatch3_cmd.run.run(tmp_path / "wwatch3.yaml", results_dir, start_date)
+        tmp_run_dir = Path(caplog.messages[0].split()[-1])
+        tmp_run_dir_links = {fp.name for fp in tmp_run_dir.iterdir() if fp.is_symlink()}
+        assert tmp_run_dir_links == {"mod_def.ww3", "wind", "current"}
+
+    def test_ww3_ounf_inp_file(self, run_desc, tmp_run_dir):
+        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        expected = textwrap.dedent(
+            f"""\
+            $ WAVEWATCH III NETCDF Grid output post-processing
+            $
+            $ First output time (YYYYMMDD HHmmss), output increment (s), number of output times
+              {run_start_date_yyyymmdd} 000000 1800 48
+            $
+            $ Fields
+              N  by name
+              HS LM WND CUR FP T02 DIR DP WCH WCC TWO FOC USS
+            $
+            $ netCDF4 output
+            $ real numbers
+            $ swell partitions
+            $ one file
+              4
+              4
+              0 1 2
+              T
+            $
+            $ File prefix
+            $ number of characters in date
+            $ IX, IY range
+            $
+              SoG_ww3_fields_
+              8
+              1 1000000 1 1000000
+            """
+        )
+        tmp_run_dir_lines = (tmp_run_dir / "ww3_ounf.inp").read_text().splitlines()
+        assert tmp_run_dir_lines == expected.splitlines()
+
+    def test_ww3_ounp_inp_file(self, run_desc, tmp_run_dir):
+        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        expected = textwrap.dedent(
+            f"""\
+            $ WAVEWATCH III NETCDF Point output post-processing
+            $
+            $ First output time (YYYYMMDD HHmmss), output increment (s), number of output times
+              {run_start_date_yyyymmdd} 000000 600 144
+            $
+            $ All points defined in ww3_shel.inp
+              -1
+            $ File prefix
+            $ number of characters in date
+            $ netCDF4 output
+            $ one file, max number of points to process
+            $ tables of mean parameters
+            $ WW3 global attributes
+            $ time,station dimension order
+            $ WMO standard output
+              SoG_ww3_points_
+              8
+              4
+              T 100
+              2
+              0
+              T
+              6
+            """
+        )
+        tmp_run_dir_lines = (tmp_run_dir / "ww3_ounp.inp").read_text().splitlines()
+        assert tmp_run_dir_lines == expected.splitlines()
+
+    def test_ww3_prnc_current_inp_file(self, run_desc, tmp_run_dir):
+        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        expected = textwrap.dedent(
+            f"""\
+            $ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_current.inp
+            $
+            $ Forcing type, grid type, time in file, header
+              'CUR' 'LL' T T
+            $ Name of dimensions
+            $
+              x y
+            $
+            $ Sea water current component variable names
+              u_current v_current
+            $
+            $ Forcing source file path/name
+            $ File is produced by make_ww3_current_file worker
+              'current/SoG_current_{run_start_date_yyyymmdd}.nc'
+            """
+        )
+        tmp_run_dir_lines = (
+            (tmp_run_dir / "ww3_prnc_current.inp").read_text().splitlines()
+        )
+        assert tmp_run_dir_lines == expected.splitlines()
+
+    def test_ww3_prnc_wind_inp_file(self, run_desc, tmp_run_dir):
+        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        expected = textwrap.dedent(
+            f"""\
+            $ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_wind.inp
+            $
+            $ Forcing type, grid type, time in file, header
+               'WND' 'LL' T T
+            $
+            $ Dimension variable names
+              x y
+            $
+            $ Wind component variable names
+              u_wind v_wind
+            $
+            $ Forcing source file path/name
+            $ File is produced by make_ww3_wind_file worker
+              'wind/SoG_wind_{run_start_date_yyyymmdd}.nc'
+            """
+        )
+        tmp_run_dir_lines = (tmp_run_dir / "ww3_prnc_wind.inp").read_text().splitlines()
+        assert tmp_run_dir_lines == expected.splitlines()
+
+    def test_ww3_shel_inp_file(self, run_desc, tmp_run_dir):
+        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        run_end_date_yyyymmdd = arrow.now().shift(days=+1).format("YYYYMMDD")
+        expected = textwrap.dedent(
+            f"""\
+            $ WAVEWATCH III shell input file
+            $
+            $ Forcing/inputs to use
+              F F  Water levels w/ homogeneous field data
+              T F  Currents w/ homogeneous field data
+              T F  Winds w/ homogeneous field data
+              F    Ice concentration
+              F    Assimilation data : Mean parameters
+              F    Assimilation data : 1-D spectra
+              F    Assimilation data : 2-D spectra.
+            $
+               {run_start_date_yyyymmdd} 000000  Start time (YYYYMMDD HHmmss)
+               {run_end_date_yyyymmdd} 000000  End time (YYYYMMDD HHmmss)
+            $
+            $ Output server mode
+              2  dedicated process
+            $
+            $ Field outputs
+            $ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+              {run_start_date_yyyymmdd} 000000 1800 {run_end_date_yyyymmdd} 000000
+            $ Fields
+              N  by name
+              HS LM WND CUR FP T02 DIR DP WCH WCC TWO FOC USS
+            $
+            $ Point outputs (required placeholder for unused feature)
+            $ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+              {run_start_date_yyyymmdd} 000000 0 {run_end_date_yyyymmdd} 000000
+            $
+            $ Along-track output (required placeholder for unused feature)
+            $ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+              {run_start_date_yyyymmdd} 000000 0 {run_end_date_yyyymmdd} 000000
+            $
+            $ Restart files
+            $ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+              {run_end_date_yyyymmdd} 000000 3600 {run_end_date_yyyymmdd} 000000
+            $
+            $ Boundary data (required placeholder for unused feature)
+            $ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+              {run_start_date_yyyymmdd} 000000 0 {run_end_date_yyyymmdd} 000000
+            $
+            $ Separated wave field data (required placeholder for unused feature)
+            $ Start time (YYYYMMDD HHmmss), Interval (s), End time (YYYYMMDD HHmmss)
+              {run_start_date_yyyymmdd} 000000 0 {run_end_date_yyyymmdd} 000000
+            $
+            $ Homogeneous field data (required placeholder for unused feature)
+              ’STP’
+            """
+        )
+        tmp_run_dir_lines = (tmp_run_dir / "ww3_shel.inp").read_text().splitlines()
+        assert tmp_run_dir_lines == expected.splitlines()
+
+    def test_SoGWW3_sh_file(self, run_desc, tmp_run_dir, tmp_path):
+        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        expected = textwrap.dedent(
+            f"""\
+            #!/bin/bash
+            
+            {wwatch3_cmd.run._sbatch_directives(run_desc, tmp_path/"results_dir")}
+            set -e  # abort on first error
+            set -u  # abort if undefinded variable is encountered
+            
+            module load netcdf-fortran-mpi/4.4.4
+            
+            RUN_ID="{run_desc['run_id']}"
+            WORK_DIR="{tmp_run_dir}"
+            RESULTS_DIR="{tmp_path/'results_dir'}"
+            WW3_EXE="$PROJECT/$USER/MIDOSS/wwatch3-5.16/exe"
+            MPIRUN="mpirun"
+            GATHER="$HOME/.local/bin/wwatch3 gather"
+            
+            mkdir -p ${{RESULTS_DIR}}
+            
+            cd ${{WORK_DIR}}
+            echo "working dir: $(pwd)"
+            
+            echo "Starting wind.nc file creation at $(date)"
+            ln -s ww3_prnc_wind.inp ww3_prnc.inp && \\
+            ${{WW3_EXE}}/ww3_prnc && \\
+            rm -f ww3_prnc.inp
+            echo "Ending wind.nc file creation at $(date)"
+            
+            echo "Starting current.nc file creation at $(date)"
+            ln -s ww3_prnc_current.inp ww3_prnc.inp && \\
+            ${{WW3_EXE}}/ww3_prnc && \\
+            rm -f ww3_prnc.inp
+            echo "Ending current.nc file creation at $(date)"
+            
+            echo "Starting run at $(date)"
+            ${{MPIRUN}} -np 48 ${{WW3_EXE}}/ww3_shel && \\
+            mv log.ww3 ww3_shel.log && \\
+            rm current.ww3 wind.ww3 && \\
+            echo "Ended run at $(date)"
+            
+            echo "Starting netCDF4 fields output at $(date)"
+            ${{WW3_EXE}}/ww3_ounf && \\
+            mv SoG_ww3_fields_{run_start_date_yyyymmdd}.nc \\
+              SoG_ww3_fields_{run_start_date_yyyymmdd}_{run_start_date_yyyymmdd}.nc && \\
+            rm out_grd.ww3
+            echo "Ending netCDF4 fields output at $(date)"
+            
+            echo "Results gathering started at $(date)"
+            ${{GATHER}} ${{RESULTS_DIR}} --debug
+            echo "Results gathering ended at $(date)"
+            
+            echo "Deleting run directory"
+            rmdir $(pwd)
+            echo "Finished at $(date)"
+            """
+        )
+        tmp_run_dir_lines = [
+            line.strip()
+            for line in (tmp_run_dir / "SoGWW3.sh").read_text().splitlines()
+        ]
+        assert tmp_run_dir_lines == [line.strip() for line in expected.splitlines()]
+
+    def test_ww3_grid_inp_file(self, run_desc, tmp_run_dir):
+        expected = textwrap.dedent(
+            """\
+            $ WAVEWATCH III Grid preprocessor input file
+            $ ------------------------------------------
+            $  Grid name (C*30, in quotes)
+              'SoG_BCgrid_00500m             '
+            $
+            $         '
+            $ Frequency increment factor and first frequency (Hz) number of frequencies (wavenumbers) and directions,
+            $ relative offset of first direction in terms of the directional increment [-0.5,0.5].
+            $ In versions 1.18 and 2.22 of the model this value was by definiton 0,
+            $ it is added to mitigate the GSE for a first order scheme.
+            $ Note that this factor is IGNORED in the print plots in ww3_outp.
+            $   1.1  0.04  25  24  0.
+               1.1  0.06665  25  24  0.
+            $  1.1  0.04665  15  24  0.
+            $  1.1  0.04665  15  24  0.5
+            $
+            $ Set model flags
+            $ - FLDRY:  Dry run (input/output only, no calculation).
+            $ - FLCX, FLCY: Activate X and Y component of propagation.
+            $ - FLCTH, FLCK: Activate direction and wavenumber shifts.
+            $ - FLSOU:  Activate source terms.
+            $$   F T T T T T
+            $$$    F F F F F T
+                 F T T T T T
+            $
+            $ Set time steps
+            $ - Time step information (this information is always read)
+            $ maximum global time step, maximum CFL time step for x-y and
+            $ k-theta, minimum source term time step (all in seconds).
+            $
+            $  3600.  1300.  1300.  25.
+              200.  50.  100.  10.
+            $$
+            $
+            $ Start of namelist input section ------------------------------------ $
+            $ Starting with WAVEWATCH III version 2.00, the tunable parameters
+            $ for source terms, propagation schemes, and numerics are read using
+            $ namelists. Any namelist found in the folowing sections up to the
+            $ end-of-section identifier string (see below) is temporarily written
+            $ to ww3_grid.scratch, and read from there if necessary. Namelists
+            $ not needed for the given switch settings will be skipped
+            $ automatically, and the order of the namelists is immaterial.
+            $  see manual section 4.2 for options (many!)
+            $ Activated up to one line per namelist !!
+            $
+            $  &PRO2 DTIME= 0. /
+            $ &PRO2 DTIME=172800. /
+            $ &PRO2 DTIME=345600. /
+            $ &PRO3 WDTHTH=0.00, WDTHCG=0.00 /
+            $ &PRO3 WDTHTH=0.75, WDTHCG=0.75 /
+            $ &PRO3 WDTHTH=1.50, WDTHCG=1.50 /
+            $ &PRO3 WDTHTH=2.00, WDTHCG=2.00 /
+            $ &PRO3 WDTHTH=0.00, WDTHCG=2.00 /
+            $ &PRO3 WDTHTH=2.00, WDTHCG=0.00 /
+            $
+            $
+            $ Mandatory string to identify end of namelist input section.
+            $
+            END OF NAMELISTS
+            $
+            $ Define grid -------------------------------------------------------- $
+            $
+            $ Five records containing :
+            $
+            $ 1 Type of grid, coordinate system and type of closure: GSTRG, FLAGLL,
+            $ CSTRG. Grid closure can only be applied in spherical coordinates.
+            $ GSTRG : String indicating type of grid :
+            $ ’RECT’ : rectilinear
+            $ ’CURV’ : curvilinear
+            $ FLAGLL : Flag to indicate coordinate system :
+            $ T : Spherical (lon/lat in degrees)
+            $ F : Cartesian (meters)
+            $ CSTRG : String indicating the type of grid index space closure :
+            $ ’NONE’ : No closure is applied
+            $ ’SMPL’ : Simple grid closure : Grid is periodic in the
+            $ : i-index and wraps at i=NX+1. In other words,
+            $ : (NX+1,J) => (1,J). A grid with simple closure
+            $ : may be rectilinear or curvilinear.
+            $ ’TRPL’ : Tripole grid closure : Grid is periodic in the
+            $ : i-index and wraps at i=NX+1 and has closure at
+            $ : j=NY+1. In other words, (NX+1,J<=NY) => (1,J)
+            $ : and (I,NY+1) => (MOD(NX-I+1,NX)+1,NY). Tripole
+            $ : grid closure requires that NX be even. A grid
+            $ : with tripole closure must be curvilinear.
+            $
+            $ 2 NX, NY. As the outer grid lines are always defined as land
+            $ points, the minimum size is 3x3.
+            $
+            $ Branch here based on grid type:
+            $
+            $ IF ( RECTILINEAR GRID ) THEN
+            $
+            $ 3 Grid increments SX, SY (degr.or m) and scaling (division) factor.
+            $ If CSTRG=’SMPL’, then SX is set to 360/NX.
+            $
+            $ 4 Coordinates of (1,1) (degr.) and scaling (division) factor.
+            $
+            $ ELSE IF ( CURVILINEAR GRID ) THEN
+            $  (see manual for settings for non-rctiliniar grids)
+            $  (here we assume a rectiliniar grid)
+            $
+            $ END IF ( GRID TYPE )
+            $
+            $ 5 Limiting bottom depth (m) to discriminate between land and sea
+            $ points, minimum water depth (m) as allowed in model, unit number
+            $ of file with bottom depths, scale factor for bottom depths (mult.),
+            $ IDLA, IDFM, format for formatted read, FROM and filename.
+            $ IDLA : Layout indicator :
+            $ 1 : Read line-by-line bottom to top.
+            $ 2 : Like 1, single read statement.
+            $ 3 : Read line-by-line top to bottom.
+            $ 4 : Like 3, single read statement.
+            $ IDFM : format indicator :
+            $ 1 : Free format.
+            $ 2 : Fixed format with above format descriptor.
+            $ 3 : Unformatted.
+            $
+              'RECT' T 'NONE'
+              572      661
+              0.42     0.27   60.00
+              234.0000          48.0000         1.00
+              -0.10   2.50  20  0.001000  1  1 '(....)'  NAME  'grid/SoG_BCgrid_00500m.bot'
+            $
+            $ Sub-grid information
+            $$   30  0.010000  1  1  '(....)'  NAME  'grid/SoG_BCgrid_00500m.obs'
+               40  1  1  '(....)'  NAME  'grid/SoG_BCgrid_00500m.msk'
+            $
+            $
+            $
+            $$   0  0  F
+            $$   0  0  F
+            $$   0  0
+            $
+            $  Close list by defining line with 0 points (mandatory)
+               0. 0. 0. 0.  0
+            $ -------------------------------------------------------------------- $
+            $ End of input file
+            $
+            $ -------------------------------------------------------------------- $
+            """
+        )
+        tmp_run_dir_lines = (tmp_run_dir / "ww3_grid.inp").read_text().splitlines()
+        assert tmp_run_dir_lines == expected.splitlines()
