@@ -12,7 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""WWatch3-Cmd run sub-command plug-in unit tests.
+"""WWatch3-Cmd run sub-command plug-in unit and integration tests.
 """
 import logging
 import os
@@ -364,7 +364,7 @@ class TestTmpRunDir:
         assert tmp_run_dir_links == {"mod_def.ww3", "wind", "current"}
 
     def test_ww3_ounf_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Grid output post-processing
@@ -398,7 +398,7 @@ class TestTmpRunDir:
         assert tmp_run_dir_lines == expected.splitlines()
 
     def test_ww3_ounp_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Point output post-processing
@@ -430,7 +430,7 @@ class TestTmpRunDir:
         assert tmp_run_dir_lines == expected.splitlines()
 
     def test_ww3_prnc_current_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_current.inp
@@ -455,7 +455,7 @@ class TestTmpRunDir:
         assert tmp_run_dir_lines == expected.splitlines()
 
     def test_ww3_prnc_wind_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_wind.inp
@@ -478,8 +478,10 @@ class TestTmpRunDir:
         assert tmp_run_dir_lines == expected.splitlines()
 
     def test_ww3_shel_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
-        run_end_date_yyyymmdd = arrow.now().shift(days=+1).format("YYYYMMDD")
+        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
+        run_end_date_yyyymmdd = (
+            arrow.get("2019-10-13").shift(days=+1).format("YYYYMMDD")
+        )
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III shell input file
@@ -534,7 +536,7 @@ class TestTmpRunDir:
         assert tmp_run_dir_lines == expected.splitlines()
 
     def test_SoGWW3_sh_file(self, run_desc, tmp_run_dir, tmp_path):
-        run_start_date_yyyymmdd = arrow.now().format("YYYYMMDD")
+        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             #!/bin/bash
