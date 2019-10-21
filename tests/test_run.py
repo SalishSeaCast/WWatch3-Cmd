@@ -40,8 +40,10 @@ def run_desc(tmp_path):
     scratch.mkdir()
     scratch_ww3_runs = scratch / "wwatch3_runs"
     scratch_ww3_runs.mkdir()
-    results_01jan15 = scratch_ww3_runs / "01jan15"
-    results_01jan15.mkdir()
+    results_14oct19 = scratch_ww3_runs / "14oct19"
+    results_14oct19.mkdir()
+    restart001_ww3 = results_14oct19 / "restart001.ww3"
+    restart001_ww3.write_bytes(b"")
     current_dir = scratch / "current"
     current_dir.mkdir()
     wind_dir = scratch / "wind"
@@ -57,7 +59,6 @@ def run_desc(tmp_path):
         textwrap.dedent(
             f"""\
             run_id: SoGwaves
-            walltime: 00:20:00
             account: def-allen
             email: someone@eoas.ubc.ca
             
@@ -72,7 +73,7 @@ def run_desc(tmp_path):
               wind: {os.fspath(wind_dir)}
               
             restart:
-              restart.ww3: {os.fspath(results_01jan15)}
+              restart.ww3: {os.fspath(restart001_ww3)}
             """
         )
     )
@@ -154,6 +155,14 @@ class TestParser:
         assert parser._actions[6].default == arrow.now().floor("day")
         assert parser._actions[6].help
 
+    def test_n_days_option(self, run_cmd):
+        parser = run_cmd.get_parser("wwatch3 run")
+        assert parser._actions[7].dest == "n_days"
+        assert parser._actions[7].option_strings == ["--n-days"]
+        assert parser._actions[7].type == int
+        assert parser._actions[7].default == 1
+        assert parser._actions[7].help
+
     def test_parsed_args_defaults(self, run_cmd):
         parser = run_cmd.get_parser("wwatch3 run")
         parsed_args = parser.parse_args(["foo.yaml", "00:20:00", "results/foo/"])
@@ -163,6 +172,7 @@ class TestParser:
         assert not parsed_args.no_submit
         assert not parsed_args.quiet
         assert parsed_args.start_date == arrow.now().floor("day")
+        assert parsed_args.n_days == 1
 
     @pytest.mark.parametrize("flag", ["-q", "--quiet"])
     def test_parsed_args_quiet_options(self, flag, run_cmd):
@@ -184,7 +194,23 @@ class TestParser:
         )
         assert parsed_args.start_date == arrow.get("2019-10-09")
 
+    def test_parsed_args_n_days_option(self, run_cmd):
+        parser = run_cmd.get_parser("wwatch3 run")
+        parsed_args = parser.parse_args(
+            [
+                "foo.yaml",
+                "00:20:00",
+                "results/foo/",
+                "--start-date",
+                "2019-10-09",
+                "--n-days",
+                "10",
+            ]
+        )
+        assert parsed_args.n_days == 10
 
+
+@pytest.mark.parametrize("n_days", (1, 2))
 class TestTakeAction:
     """Unit tests for `wwatch3 run` sub-command take_action() method.
     """
@@ -197,12 +223,13 @@ class TestTakeAction:
 
         monkeypatch.setattr(wwatch3_cmd.run, "run", mock_run_return)
 
-    def test_take_action(self, mock_run_submit_return, run_cmd, caplog):
+    def test_take_action(self, n_days, mock_run_submit_return, run_cmd, caplog):
         start_date = arrow.get("2019-10-07")
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             walltime="00:20:00",
             results_dir=Path("results dir"),
+            n_days=n_days,
             no_submit=False,
             quiet=False,
             start_date=start_date,
@@ -211,11 +238,12 @@ class TestTakeAction:
         run_cmd.take_action(parsed_args)
         assert caplog.messages[0] == "submit job msg"
 
-    def test_take_action_quiet(self, mock_run_submit_return, run_cmd, caplog):
+    def test_take_action_quiet(self, n_days, mock_run_submit_return, run_cmd, caplog):
         parsed_args = SimpleNamespace(
             desc_file=Path("desc file"),
             walltime="00:20:00",
             results_dir=Path("results dir"),
+            n_days=n_days,
             no_submit=False,
             quiet=True,
             start_date=arrow.get("2019-10-07"),
@@ -224,7 +252,7 @@ class TestTakeAction:
         run_cmd.take_action(parsed_args)
         assert not caplog.messages
 
-    def test_take_action_no_submit(self, run_cmd, caplog, monkeypatch):
+    def test_take_action_no_submit(self, n_days, run_cmd, caplog, monkeypatch):
         def mock_run_no_submit_return(*args, **kwargs):
             return None
 
@@ -232,6 +260,7 @@ class TestTakeAction:
             desc_file=Path("desc file"),
             walltime="00:20:00",
             results_dir=Path("results dir"),
+            n_days=n_days,
             no_submit=True,
             quiet=False,
             start_date=arrow.get("2019-10-07"),
@@ -333,28 +362,89 @@ class TestTmpRunDir:
 
     @staticmethod
     @pytest.fixture
-    def tmp_run_dir(mock_subprocess_stdout, tmp_path, caplog):
-        caplog.set_level(logging.INFO)
-        results_dir = tmp_path / "results_dir"
-        start_date = arrow.get("2019-10-13")
+    def mock_arrow_now_return(monkeypatch):
+        def mock_return(*args):
+            return arrow.get("2019-10-15 17:06:43.123456-0700")
+
+        monkeypatch.setattr(wwatch3_cmd.run.arrow, "now", mock_return)
+
+    def test_tmp_run_dir_name_1_day(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
         wwatch3_cmd.run.run(
             tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
         )
-        tmp_run_dir = caplog.messages[0].split()[-1]
-        return Path(tmp_run_dir)
+        assert (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        ).exists()
 
-    def test_tmp_run_dir_name(self, run_desc, tmp_run_dir):
-        assert tmp_run_dir.name.startswith(
-            f"{run_desc['run_id']}_{arrow.now().format('YYYY-MM-DD')}T"
+    def test_tmp_run_dir_names_2_days(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00", n_days=2
         )
+        assert (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_15oct19_2019-10-15T170643.123456-0700"
+        ).exists()
+        assert (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_16oct19_2019-10-15T170643.123456-0700"
+        ).exists()
 
-    def test_tmp_run_dir_files(self, run_desc, tmp_run_dir):
+    def test_results_dir_name_1_day(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        assert results_dir.exists()
+
+    def test_results_dir_names_2_days(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00", n_days=2
+        )
+        assert (results_dir / "15oct19").exists()
+        assert (results_dir / "16oct19").exists()
+
+    def test_tmp_run_dir_files(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
         template_dir = (
             Path(__file__).parent.parent
             / "cookiecutter"
             / "{{cookiecutter.tmp_run_dir}}"
         )
         template_files = {fp.name for fp in template_dir.iterdir()}
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_files = {
             fp.name
             for fp in tmp_run_dir.iterdir()
@@ -362,12 +452,56 @@ class TestTmpRunDir:
         }
         assert tmp_run_dir_files.difference(template_files) == {"wwatch3.yaml"}
 
-    def test_tmp_run_dir_symlinks(self, run_desc, tmp_run_dir):
+    def test_tmp_run_dir_files_2nd_day_no_SoGWW3_sh(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00", n_days=2
+        )
+        template_dir = (
+            Path(__file__).parent.parent
+            / "cookiecutter"
+            / "{{cookiecutter.tmp_run_dir}}"
+        )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_16oct19_2019-10-15T170643.123456-0700"
+        )
+        tmp_run_dir_files = {
+            fp.name
+            for fp in tmp_run_dir.iterdir()
+            if fp.is_file() and not fp.is_symlink()
+        }
+        assert "SoGWW3.sh" not in tmp_run_dir_files
+
+    def test_tmp_run_dir_symlinks(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_links = {fp.name for fp in tmp_run_dir.iterdir() if fp.is_symlink()}
         assert tmp_run_dir_links == {"mod_def.ww3", "restart.ww3", "wind", "current"}
 
     def test_tmp_run_dir_symlinks_no_restart(
-        self, run_desc, mock_subprocess_stdout, tmp_path, caplog, monkeypatch
+        self,
+        mock_arrow_now_return,
+        mock_subprocess_stdout,
+        run_desc,
+        tmp_path,
+        monkeypatch,
     ):
         def mock_load_run_desc_return(*args):
             monkeypatch.delitem(run_desc, "restart")
@@ -376,18 +510,65 @@ class TestTmpRunDir:
         monkeypatch.setattr(
             wwatch3_cmd.run.nemo_cmd.prepare, "load_run_desc", mock_load_run_desc_return
         )
-        caplog.set_level(logging.INFO)
-        results_dir = tmp_path / "results_dir"
-        start_date = arrow.get("2019-10-13")
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
         wwatch3_cmd.run.run(
             tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
         )
-        tmp_run_dir = Path(caplog.messages[0].split()[-1])
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_links = {fp.name for fp in tmp_run_dir.iterdir() if fp.is_symlink()}
         assert tmp_run_dir_links == {"mod_def.ww3", "wind", "current"}
 
-    def test_ww3_ounf_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
+    def test_restart_symlink_target(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
+        assert os.readlink(tmp_run_dir / "restart.ww3") == os.fspath(
+            tmp_path / "scratch" / "wwatch3_runs" / "14oct19" / "restart001.ww3"
+        )
+
+    def test_restart_symlink_target_2nd_day(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00", n_days=2
+        )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_16oct19_2019-10-15T170643.123456-0700"
+        )
+        assert os.readlink(tmp_run_dir / "restart.ww3") == os.fspath(
+            tmp_path / "scratch" / "wwatch3_runs" / "15oct19" / "restart001.ww3"
+        )
+
+    def test_ww3_ounf_inp_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        run_start_date_yyyymmdd = start_date.format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Grid output post-processing
@@ -417,11 +598,24 @@ class TestTmpRunDir:
               1 1000000 1 1000000
             """
         )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_lines = (tmp_run_dir / "ww3_ounf.inp").read_text().splitlines()
         assert tmp_run_dir_lines == expected.splitlines()
 
-    def test_ww3_ounp_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
+    def test_ww3_ounp_inp_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        run_start_date_yyyymmdd = start_date.format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Point output post-processing
@@ -449,11 +643,24 @@ class TestTmpRunDir:
               6
             """
         )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_lines = (tmp_run_dir / "ww3_ounp.inp").read_text().splitlines()
         assert tmp_run_dir_lines == expected.splitlines()
 
-    def test_ww3_prnc_current_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
+    def test_ww3_prnc_current_inp_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        run_start_date_yyyymmdd = start_date.format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_current.inp
@@ -472,13 +679,26 @@ class TestTmpRunDir:
               'current/SoG_current_{run_start_date_yyyymmdd}.nc'
             """
         )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_lines = (
             (tmp_run_dir / "ww3_prnc_current.inp").read_text().splitlines()
         )
         assert tmp_run_dir_lines == expected.splitlines()
 
-    def test_ww3_prnc_wind_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
+    def test_ww3_prnc_wind_inp_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        run_start_date_yyyymmdd = start_date.format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III NETCDF Field preprocessor input ww3_prnc_wind.inp
@@ -497,14 +717,25 @@ class TestTmpRunDir:
               'wind/SoG_wind_{run_start_date_yyyymmdd}.nc'
             """
         )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_lines = (tmp_run_dir / "ww3_prnc_wind.inp").read_text().splitlines()
         assert tmp_run_dir_lines == expected.splitlines()
 
-    def test_ww3_shel_inp_file(self, run_desc, tmp_run_dir):
-        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
-        run_end_date_yyyymmdd = (
-            arrow.get("2019-10-13").shift(days=+1).format("YYYYMMDD")
+    def test_ww3_shel_inp_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
         )
+        run_start_date_yyyymmdd = start_date.format("YYYYMMDD")
+        run_end_date_yyyymmdd = start_date.shift(days=+1).format("YYYYMMDD")
         expected = textwrap.dedent(
             f"""\
             $ WAVEWATCH III shell input file
@@ -555,65 +786,95 @@ class TestTmpRunDir:
               ’STP’
             """
         )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         tmp_run_dir_lines = (tmp_run_dir / "ww3_shel.inp").read_text().splitlines()
         assert tmp_run_dir_lines == expected.splitlines()
 
-    def test_SoGWW3_sh_file(self, run_desc, tmp_run_dir, tmp_path):
-        run_start_date_yyyymmdd = arrow.get("2019-10-13").format("YYYYMMDD")
+    def test_SoGWW3_sh_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
+        run_start_date_yyyymmdd = start_date.format("YYYYMMDD")
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
+        )
         expected = textwrap.dedent(
             f"""\
             #!/bin/bash
             
-            {wwatch3_cmd.run._sbatch_directives(run_desc, tmp_path / "results_dir", "00:20:00")}
+            {wwatch3_cmd.run._sbatch_directives(run_desc, results_dir, "00:20:00")}
             set -e  # abort on first error
             set -u  # abort if undefinded variable is encountered
             
             module load netcdf-fortran-mpi/4.4.4
             
-            RUN_ID="{run_desc['run_id']}"
-            WORK_DIR="{tmp_run_dir}"
-            RESULTS_DIR="{tmp_path/'results_dir'}"
             WW3_EXE="$PROJECT/$USER/MIDOSS/wwatch3-5.16/exe"
             MPIRUN="mpirun"
             GATHER="$HOME/.local/bin/wwatch3 gather"
             
-            mkdir -p ${{RESULTS_DIR}}
+            RUN_START_DATES=(
+              {run_start_date_yyyymmdd}
+            )
             
-            cd ${{WORK_DIR}}
-            echo "working dir: $(pwd)"
+            RESULTS_DIRS=(
+              {results_dir} 
+            )
+            WORK_DIRS=(
+              {tmp_run_dir} 
+            )
             
-            echo "Starting wind.nc file creation at $(date)"
-            ln -s ww3_prnc_wind.inp ww3_prnc.inp && \\
-            ${{WW3_EXE}}/ww3_prnc && \\
-            rm -f ww3_prnc.inp
-            echo "Ending wind.nc file creation at $(date)"
-            
-            echo "Starting current.nc file creation at $(date)"
-            ln -s ww3_prnc_current.inp ww3_prnc.inp && \\
-            ${{WW3_EXE}}/ww3_prnc && \\
-            rm -f ww3_prnc.inp
-            echo "Ending current.nc file creation at $(date)"
-            
-            echo "Starting run at $(date)"
-            ${{MPIRUN}} -np 48 ${{WW3_EXE}}/ww3_shel && \\
-            mv log.ww3 ww3_shel.log && \\
-            rm current.ww3 wind.ww3 && \\
-            echo "Ended run at $(date)"
-            
-            echo "Starting netCDF4 fields output at $(date)"
-            ${{WW3_EXE}}/ww3_ounf && \\
-            mv SoG_ww3_fields_{run_start_date_yyyymmdd}.nc \\
-              SoG_ww3_fields_{run_start_date_yyyymmdd}_{run_start_date_yyyymmdd}.nc && \\
-            rm out_grd.ww3
-            echo "Ending netCDF4 fields output at $(date)"
-            
-            echo "Results gathering started at $(date)"
-            ${{GATHER}} ${{RESULTS_DIR}} --debug
-            echo "Results gathering ended at $(date)"
-            
-            echo "Deleting run directory"
-            rmdir $(pwd)
-            echo "Finished at $(date)"
+            for (( i=0; i<${{#RESULTS_DIRS[@]}}; ++i ))
+            do
+              echo "results dir: ${{RESULTS_DIRS[i]}}"
+
+              cd ${{WORK_DIRS[i]}}
+              echo "working dir: $(pwd)"
+
+              echo "Starting wind.nc file creation at $(date)"
+              ln -s ww3_prnc_wind.inp ww3_prnc.inp && \\
+              ${{WW3_EXE}}/ww3_prnc && \\
+              rm -f ww3_prnc.inp
+              echo "Ending wind.nc file creation at $(date)"
+
+              echo "Starting current.nc file creation at $(date)"
+              ln -s ww3_prnc_current.inp ww3_prnc.inp && \\
+              ${{WW3_EXE}}/ww3_prnc && \\
+              rm -f ww3_prnc.inp
+              echo "Ending current.nc file creation at $(date)"
+
+              echo "Starting run at $(date)"
+              ${{MPIRUN}} -np 48 ${{WW3_EXE}}/ww3_shel && \\
+              mv log.ww3 ww3_shel.log && \\
+              rm current.ww3 wind.ww3 && \\
+              echo "Ended run at $(date)"
+
+              echo "Starting netCDF4 fields output at $(date)"
+              ${{WW3_EXE}}/ww3_ounf && \\
+              mv SoG_ww3_fields_${{RUN_START_DATES[i]}}.nc \\
+                SoG_ww3_fields_${{RUN_START_DATES[i]}}_${{RUN_START_DATES[i]}}.nc && \\
+              rm out_grd.ww3
+              echo "Ending netCDF4 fields output at $(date)"
+
+              echo "Results gathering started at $(date)"
+              ${{GATHER}} ${{RESULTS_DIRS[i]}} --debug
+              echo "Results gathering ended at $(date)"
+
+              echo "Deleting run directory"
+              rmdir $(pwd)
+              echo "Finished at $(date)"
+            done
             """
         )
         tmp_run_dir_lines = [
@@ -622,7 +883,112 @@ class TestTmpRunDir:
         ]
         assert tmp_run_dir_lines == [line.strip() for line in expected.splitlines()]
 
-    def test_ww3_grid_inp_file(self, run_desc, tmp_run_dir):
+    def test_SoGWW3_sh_file_2_days(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00", n_days=2
+        )
+        run_start_dates_yyyymmdd = (
+            f'  {arrow.get("2019-10-15").format("YYYYMMDD")}\n'
+            f'  {arrow.get("2019-10-16").format("YYYYMMDD")}'
+        )
+        results_dirs = f'  {results_dir/"15oct19"}\n' f'  {results_dir/"16oct19"}'
+        work_dirs = (
+            f'  {tmp_path / "scratch" / "wwatch3_runs" / "SoGwaves_15oct19_2019-10-15T170643.123456-0700"}\n'
+            f'  {tmp_path / "scratch" / "wwatch3_runs" / "SoGwaves_16oct19_2019-10-15T170643.123456-0700"}'
+        )
+        expected = textwrap.dedent(
+            f"""\
+            #!/bin/bash
+            
+            {wwatch3_cmd.run._sbatch_directives(run_desc, results_dir/"15oct19", "00:20:00")}
+            set -e  # abort on first error
+            set -u  # abort if undefinded variable is encountered
+            
+            module load netcdf-fortran-mpi/4.4.4
+            
+            WW3_EXE="$PROJECT/$USER/MIDOSS/wwatch3-5.16/exe"
+            MPIRUN="mpirun"
+            GATHER="$HOME/.local/bin/wwatch3 gather"
+            
+            RUN_START_DATES=(
+              {run_start_dates_yyyymmdd}
+            )
+            
+            RESULTS_DIRS=(
+              {results_dirs} 
+            )
+            WORK_DIRS=(
+              {work_dirs} 
+            )
+            
+            for (( i=0; i<${{#RESULTS_DIRS[@]}}; ++i ))
+            do
+              echo "results dir: ${{RESULTS_DIRS[i]}}"
+
+              cd ${{WORK_DIRS[i]}}
+              echo "working dir: $(pwd)"
+            
+              echo "Starting wind.nc file creation at $(date)"
+              ln -s ww3_prnc_wind.inp ww3_prnc.inp && \\
+              ${{WW3_EXE}}/ww3_prnc && \\
+              rm -f ww3_prnc.inp
+              echo "Ending wind.nc file creation at $(date)"
+              
+              echo "Starting current.nc file creation at $(date)"
+              ln -s ww3_prnc_current.inp ww3_prnc.inp && \\
+              ${{WW3_EXE}}/ww3_prnc && \\
+              rm -f ww3_prnc.inp
+              echo "Ending current.nc file creation at $(date)"
+              
+              echo "Starting run at $(date)"
+              ${{MPIRUN}} -np 48 ${{WW3_EXE}}/ww3_shel && \\
+              mv log.ww3 ww3_shel.log && \\
+              rm current.ww3 wind.ww3 && \\
+              echo "Ended run at $(date)"
+              
+              echo "Starting netCDF4 fields output at $(date)"
+              ${{WW3_EXE}}/ww3_ounf && \\
+              mv SoG_ww3_fields_${{RUN_START_DATES[i]}}.nc \\
+                SoG_ww3_fields_${{RUN_START_DATES[i]}}_${{RUN_START_DATES[i]}}.nc && \\
+              rm out_grd.ww3
+              echo "Ending netCDF4 fields output at $(date)"
+              
+              echo "Results gathering started at $(date)"
+              ${{GATHER}} ${{RESULTS_DIRS[i]}} --debug
+              echo "Results gathering ended at $(date)"
+              
+              echo "Deleting run directory"
+              rmdir $(pwd)
+              echo "Finished at $(date)"
+            done
+            """
+        )
+        tmp_run_dir_lines = [
+            line.strip()
+            for line in (
+                tmp_path
+                / "scratch"
+                / "wwatch3_runs"
+                / "SoGwaves_15oct19_2019-10-15T170643.123456-0700"
+                / "SoGWW3.sh"
+            )
+            .read_text()
+            .splitlines()
+        ]
+        assert tmp_run_dir_lines == [line.strip() for line in expected.splitlines()]
+
+    def test_ww3_grid_inp_file(
+        self, mock_arrow_now_return, mock_subprocess_stdout, run_desc, tmp_path
+    ):
+        results_dir = tmp_path / "results_dir" / "15oct19"
+        start_date = arrow.get("2019-10-15")
+        wwatch3_cmd.run.run(
+            tmp_path / "wwatch3.yaml", results_dir, start_date, "00:20:00"
+        )
         expected = textwrap.dedent(
             """\
             $ WAVEWATCH III Grid preprocessor input file
@@ -765,6 +1131,12 @@ class TestTmpRunDir:
             $
             $ -------------------------------------------------------------------- $
             """
+        )
+        tmp_run_dir = (
+            tmp_path
+            / "scratch"
+            / "wwatch3_runs"
+            / "SoGwaves_2019-10-15T170643.123456-0700"
         )
         tmp_run_dir_lines = (tmp_run_dir / "ww3_grid.inp").read_text().splitlines()
         assert tmp_run_dir_lines == expected.splitlines()

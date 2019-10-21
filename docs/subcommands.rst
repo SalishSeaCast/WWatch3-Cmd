@@ -50,53 +50,8 @@ For example:
 
 ::
 
-    usage: wwatch3 run [-h] [--no-submit] [-q] [--start-date START_DATE]
-                       DESC_FILE WALLTIME RESULTS_DIR
-
-    Prepare, execute, and gather the results from a WaveWatch III® run described
-    in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
-    RESULTS_DIR does not exist it will be created.
-
-    positional arguments:
-      DESC_FILE             run description YAML file
-      WALLTIME              HPC batch job walltime for the run; formatted as
-                            HH:MM:SS
-      RESULTS_DIR           directory to store results into
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --no-submit           Prepare the temporary run directory, and the bash
-                            script to
-                            execute the WaveWatch III® run, but don't submit the
-                            run to the queue.
-                            This is useful during development runs when you want
-                            to hack on
-                            the bash script and/or use the same temporary run
-                            directory
-                            more than once.
-      -q, --quiet           don't show the run directory path or job submission
-                            message
-      --start-date START_DATE
-                            Date to start run execution on. Use YYYY-MM-DD format.
-                            Defaults to 2019-10-14.
-
-If a sub-command prints an error message,
-you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
-
-
-.. _wwatch3-run:
-
-:kbd:`run` Sub-command
-======================
-
-The :command:`run` sub-command prepares,
-executes,
-and gathers the results from the WaveWatch III® run described in the run description YAML file provided on the command-line.
-The results are gathered in the results directory that is also provided on the command-line.
-
-::
-
   usage: wwatch3 run [-h] [--no-submit] [-q] [--start-date START_DATE]
+                     [--n-days N_DAYS]
                      DESC_FILE WALLTIME RESULTS_DIR
 
   Prepare, execute, and gather the results from a WaveWatch III® run described
@@ -125,9 +80,79 @@ The results are gathered in the results directory that is also provided on the c
     --start-date START_DATE
                           Date to start run execution on. Use YYYY-MM-DD format.
                           Defaults to 2019-10-14.
+    --n-days N_DAYS       Number of days of runs to execute in the batch job.
+                          Defaults to 1.
+
+If a sub-command prints an error message,
+you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
+
+
+.. _wwatch3-run:
+
+:kbd:`run` Sub-command
+======================
+
+The :command:`run` sub-command prepares,
+executes,
+and gathers the results from the WaveWatch III® run described in the run description YAML file provided on the command-line.
+The results are gathered in the results directory that is also provided on the command-line.
+
+::
+
+  usage: wwatch3 run [-h] [--no-submit] [-q] [--start-date START_DATE]
+                     [--n-days N_DAYS]
+                     DESC_FILE WALLTIME RESULTS_DIR
+
+  Prepare, execute, and gather the results from a WaveWatch III® run described
+  in DESC_FILE. The results files from the run are gathered in RESULTS_DIR. If
+  RESULTS_DIR does not exist it will be created.
+
+  positional arguments:
+    DESC_FILE             run description YAML file
+    WALLTIME              HPC batch job walltime for the run; formatted as
+                          HH:MM:SS
+    RESULTS_DIR           directory to store results into
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    --no-submit           Prepare the temporary run directory, and the bash
+                          script to
+                          execute the WaveWatch III® run, but don't submit the
+                          run to the queue.
+                          This is useful during development runs when you want
+                          to hack on
+                          the bash script and/or use the same temporary run
+                          directory
+                          more than once.
+    -q, --quiet           don't show the run directory path or job submission
+                          message
+    --start-date START_DATE
+                          Date to start run execution on. Use YYYY-MM-DD format.
+                          Defaults to 2019-10-14.
+    --n-days N_DAYS       Number of days of runs to execute in the batch job.
+                          Defaults to 1.
 
 If the :command:`run` sub-command prints an error message,
 you can get a Python traceback containing more information about the error by re-running the command with the :kbd:`--debug` flag.
+
+For single day runs,
+the :kbd:`RESULTS_DIR` command-line argument should be the directory in which the run results are to be stored,
+for example:
+
+.. code-block:: bash
+
+    wwatch3 run 07jan15.yaml 00:15:00 $SCRATCH/MIDOSS/forcing/wwatch3/07jan15 --start-date 2015-01-07
+
+For multi-day runs,
+the :kbd:`RESULTS_DIR` command-line argument should be the directory in which the *run results directories are to be created*,
+for example:
+
+.. code-block:: bash
+
+    wwatch3 run 07-08jan15.yaml 00:30:00 $SCRATCH/MIDOSS/forcing/wwatch3/ --start-date 2015-01-07 --n-days 2
+
+In both cases,
+the run results directory(ies) will be created by the :command:`wwatch3 run` command if they don't already exist.
 
 
 .. _wwatch3-gather:
