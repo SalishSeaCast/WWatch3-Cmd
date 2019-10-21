@@ -19,8 +19,10 @@ Prepare for, execute, and gather the results of a run of the WaveWatch III® mod
 import argparse
 import logging
 import os
+from copy import deepcopy
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import textwrap
 
@@ -92,6 +94,12 @@ class Run(cliff.command.Command):
                 Defaults to {arrow.now().floor('day').format('YYYY-MM-DD')}.
                 """,
         )
+        parser.add_argument(
+            "--n-days",
+            type=int,
+            default=1,
+            help="Number of days of runs to execute in the batch job. Defaults to 1.",
+        )
         return parser
 
     @staticmethod
@@ -127,6 +135,7 @@ class Run(cliff.command.Command):
             parsed_args.results_dir,
             parsed_args.start_date,
             parsed_args.walltime,
+            n_days=parsed_args.n_days,
             no_submit=parsed_args.no_submit,
             quiet=parsed_args.quiet,
         )
@@ -134,7 +143,9 @@ class Run(cliff.command.Command):
             logger.info(submit_job_msg)
 
 
-def run(desc_file, results_dir, start_date, walltime, no_submit=False, quiet=False):
+def run(
+    desc_file, results_dir, start_date, walltime, n_days=1, no_submit=False, quiet=False
+):
     """Create and populate a temporary run directory, and a run script,
     and submit the run to the queue manager.
 
@@ -153,6 +164,8 @@ def run(desc_file, results_dir, start_date, walltime, no_submit=False, quiet=Fal
 
     :param str walltime: HPC batch job walltime to use for the run;
                          formatted as :kbd:`HH:MM:SS`.
+
+    :param int n_days: Number of days of runs to execute in the batch job.
 
     :param boolean no_submit: Prepare the temporary run directory,
                               and the run script to execute the WaveWatch III® run,
@@ -180,39 +193,99 @@ def run(desc_file, results_dir, start_date, walltime, no_submit=False, quiet=Fal
     wind_forcing_dir = nemo_cmd.prepare.get_run_desc_value(
         run_desc, ("forcing", "wind"), resolve_path=True
     )
-    try:
-        restart_path = nemo_cmd.prepare.get_run_desc_value(
-            run_desc, ("restart", "restart.ww3"), resolve_path=True, fatal=False
-        )
-    except KeyError:
-        restart_path = ""
-    results_dir = _resolve_results_dir(results_dir)
-    tmp_run_dir = Path(
+    days = list(arrow.Arrow.range("day", start_date, limit=n_days))
+    run_start_dates_yyyymmdd = (
+        [start_date.format("YYYYMMDD")]
+        if n_days == 1
+        else [day.format("YYYYMMDD") for day in days]
+    )
+    results_dirs = (
+        [_resolve_results_dir(results_dir)]
+        if n_days == 1
+        else [
+            _resolve_results_dir(results_dir) / (day.format("DDMMMYY").lower())
+            for day in days
+        ]
+    )
+    tmp_run_dir_timestamp = arrow.now().format("YYYY-MM-DDTHHmmss.SSSSSSZ")
+    tmp_run_dirs = (
+        [runs_dir / f"{run_id}_{tmp_run_dir_timestamp}"]
+        if n_days == 1
+        else [
+            runs_dir
+            / f"{run_id}_{day.format('DDMMMYY').lower()}_{tmp_run_dir_timestamp}"
+            for day in days
+        ]
+    )
+    for day, day_results_dir, tmp_run_dir in zip(days, results_dirs, tmp_run_dirs):
+        day_run_id = run_id
+        try:
+            restart_path = nemo_cmd.prepare.get_run_desc_value(
+                run_desc, ("restart", "restart.ww3"), resolve_path=True, fatal=False
+            )
+        except KeyError:
+            restart_path = ""
+        cookiecutter_context = {
+            "tmp_run_dir": tmp_run_dir,
+            "run_start_dates_yyyymmdd": "\n  ".join(run_start_dates_yyyymmdd),
+            "results_dirs": "\n  ".join(map(os.fspath, results_dirs)),
+            "work_dirs": "\n  ".join(map(os.fspath, tmp_run_dirs)),
+            "batch_directives": _sbatch_directives(run_desc, day_results_dir, walltime),
+            "module_loads": "module load netcdf-fortran-mpi/4.4.4",
+            "run_id": run_id,
+            "runs_dir": runs_dir,
+            "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
+            "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
+            "mod_def_ww3_path": mod_def_ww3_path,
+            "current_forcing_dir": current_forcing_dir,
+            "wind_forcing_dir": wind_forcing_dir,
+            "restart_path": restart_path,
+            "results_dir": day_results_dir,
+        }
+        if n_days > 1:
+            day_run_id = f"{run_id}_{day.format('DDMMMYY').lower()}"
+            if restart_path:
+                daym1_ddmmmyy = day.shift(days=-1).format("DDMMMYY").lower()
+                restart_path = (
+                    restart_path.parent.parent / daym1_ddmmmyy
+                ) / restart_path.name
+            else:
+                logger.warning(
+                    "You have requested a multi-day run with no restart file path. "
+                    "Each day of the run will start from calm wave fields. "
+                    "Is this really what you want?"
+                )
+            cookiecutter_context.update(
+                {
+                    "run_id": day_run_id,
+                    "run_start_date_yyyymmdd": day.format("YYYYMMDD"),
+                    "run_end_date_yyyymmdd": day.shift(days=+1).format("YYYYMMDD"),
+                    "restart_path": restart_path,
+                }
+            )
         cookiecutter.main.cookiecutter(
             os.fspath(Path(__file__).parent.parent / "cookiecutter"),
             no_input=True,
             output_dir=runs_dir,
-            extra_context={
-                "batch_directives": _sbatch_directives(run_desc, results_dir, walltime),
-                "module_loads": "module load netcdf-fortran-mpi/4.4.4",
-                "run_id": run_id,
-                "runs_dir": runs_dir,
-                "run_start_date_yyyymmdd": start_date.format("YYYYMMDD"),
-                "run_end_date_yyyymmdd": start_date.shift(days=+1).format("YYYYMMDD"),
-                "mod_def_ww3_path": mod_def_ww3_path,
-                "current_forcing_dir": current_forcing_dir,
-                "wind_forcing_dir": wind_forcing_dir,
-                "restart_path": restart_path,
-                "results_dir": results_dir,
-            },
+            extra_context=cookiecutter_context,
         )
-    )
-    _write_tmp_run_dir_run_desc(run_desc, tmp_run_dir, desc_file)
-    run_script_file = tmp_run_dir / "SoGWW3.sh"
+        day_run_desc = deepcopy(run_desc)
+        day_run_desc.update(
+            {"run_id": day_run_id, "restart": {"restart.ww3": os.fspath(restart_path)}}
+        )
+        _write_tmp_run_dir_run_desc(day_run_desc, tmp_run_dir, desc_file, n_days)
+        if not quiet:
+            logger.info(f"Created temporary run directory {tmp_run_dir}")
+        day_results_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        for tmp_run_dir in tmp_run_dirs[1:]:
+            (tmp_run_dir / "SoGWW3.sh").unlink()
+    except IndexError:
+        # len(tmp_run_dirs) == 1 for n_days == 1
+        pass
+    run_script_file = tmp_run_dirs[0] / "SoGWW3.sh"
     if not quiet:
-        logger.info(f"Created temporary run directory {tmp_run_dir}")
         logger.info(f"Wrote job run script to {run_script_file}")
-    results_dir.mkdir(parents=True, exist_ok=True)
     if no_submit:
         return
     sbatch_cmd = f"sbatch {run_script_file}"
@@ -225,7 +298,7 @@ def run(desc_file, results_dir, start_date, walltime, no_submit=False, quiet=Fal
     return submit_job_msg
 
 
-def _write_tmp_run_dir_run_desc(run_desc, tmp_run_dir, desc_file):
+def _write_tmp_run_dir_run_desc(run_desc, tmp_run_dir, desc_file, n_days):
     """Write the run description to a YAML file in the temporary run directory
     so that it is preserved with the run results.
 
@@ -238,7 +311,12 @@ def _write_tmp_run_dir_run_desc(run_desc, tmp_run_dir, desc_file):
 
     :param desc_file: File path/name of the YAML run description file.
     :type desc_file: :py:class:`pathlib.Path`
+
+    :param int n_days: Number of days of runs to execute in the batch job.
     """
+    if n_days == 1:
+        shutil.copy2(desc_file, tmp_run_dir)
+        return
     with (tmp_run_dir / desc_file.name).open("wt") as f:
         yaml.safe_dump(run_desc, f, default_flow_style=False)
 
