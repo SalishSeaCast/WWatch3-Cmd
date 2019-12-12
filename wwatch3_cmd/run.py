@@ -345,7 +345,7 @@ def _sbatch_directives(run_desc, results_dir, walltime):
         #SBATCH --account={nemo_cmd.prepare.get_run_desc_value(run_desc, ("account",))}
         #SBATCH --constraint=skylake
         #SBATCH --nodes=1
-        #SBATCH --ntasks-per-node=48
+        #SBATCH --ntasks-per-node=20
         #SBATCH --mem=0
         #SBATCH --time={walltime}
         # stdout and stderr file paths/names

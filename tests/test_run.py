@@ -345,7 +345,7 @@ class TestSbatchDirectives:
             #SBATCH --account=def-allen
             #SBATCH --constraint=skylake
             #SBATCH --nodes=1
-            #SBATCH --ntasks-per-node=48
+            #SBATCH --ntasks-per-node=20
             #SBATCH --mem=0
             #SBATCH --time=00:20:00
             # stdout and stderr file paths/names
@@ -855,7 +855,7 @@ class TestTmpRunDir:
               echo "Ending current.nc file creation at $(date)"
 
               echo "Starting run at $(date)"
-              ${{MPIRUN}} -np 48 ${{WW3_EXE}}/ww3_shel && \\
+              ${{MPIRUN}} -np 20 ${{WW3_EXE}}/ww3_shel && \\
               mv log.ww3 ww3_shel.log && \\
               rm current.ww3 wind.ww3 && \\
               echo "Ended run at $(date)"
@@ -945,7 +945,7 @@ class TestTmpRunDir:
               echo "Ending current.nc file creation at $(date)"
               
               echo "Starting run at $(date)"
-              ${{MPIRUN}} -np 48 ${{WW3_EXE}}/ww3_shel && \\
+              ${{MPIRUN}} -np 20 ${{WW3_EXE}}/ww3_shel && \\
               mv log.ww3 ww3_shel.log && \\
               rm current.ww3 wind.ww3 && \\
               echo "Ended run at $(date)"
