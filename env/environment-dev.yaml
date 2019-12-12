@@ -25,6 +25,7 @@ dependencies:
   - cliff!=2.9.0
   - cookiecutter
   - f90nml
+  - gitpython
   - pip
   - python=3.7
   - python-hglib
