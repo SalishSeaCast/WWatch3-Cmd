@@ -1,7 +1,7 @@
 {
   "batch_directives": "",
   "module_loads": "",
-  "n_procs": 48,
+  "n_procs": 20,
   "run_id": "SoGwaves",
   "run_start_date_yyyymmdd": "{% now 'local', '%Y%m%d' %}",
   "run_start_dates_yyyymmdd": "{{ cookiecutter.run_start_date_yyyymmdd }}",
