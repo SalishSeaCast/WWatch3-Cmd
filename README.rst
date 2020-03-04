@@ -8,17 +8,17 @@ WaveWatch III® Command Processor
 .. image:: https://img.shields.io/badge/python-3.6+-blue.svg
     :target: https://docs.python.org/3.7/
     :alt: Python Version
-.. image:: https://img.shields.io/badge/version%20control-hg-blue.svg
-    :target: https://bitbucket.org/midoss/wwatch3-cmd/
-    :alt: Mercurial on Bitbucket
+.. image:: https://img.shields.io/badge/version%20control-git-blue.svg?logo=github
+    :target: https://github.com/MIDOSS/WWatch3-Cmd
+    :alt: Git on GitHub
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://black.readthedocs.io/en/stable/
     :alt: The uncompromising Python code formatter
 .. image:: https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
     :target: https://wwatch3-cmd.readthedocs.io/en/latest/
     :alt: Documentation Status
-.. image:: https://img.shields.io/bitbucket/issues/midoss/wwatch3-cmd.svg
-    :target: https://bitbucket.org/midoss/wwatch3-cmd/issues?status=new&status=open
+.. image:: https://img.shields.io/github/issues/MIDOSS/WWatch3-Cmd?logo=github
+    :target: https://github.com/MIDOSS/WWatch3-Cmd/issues
     :alt: Issue Tracker
 
 The WaveWatch III® command processor package, ``WWatch3-Cmd``, provides the ``wwatch3``
@@ -58,8 +58,10 @@ License
     :alt: Licensed under the Apache License, Version 2.0
 
 The code and documentation of the WaveWatch III® Command Processor project
-are copyright 2019-2020 the MIDOSS project contributors, The University of British Columbia,
+are copyright 2019-2020 the `MIDOSS project contributors`_, The University of British Columbia,
 and Dalhousie University.
+
+.. _MIDOSS project contributors: https://github.com/MIDOSS/docs/blob/master/CONTRIBUTORS.rst
 
 They are licensed under the Apache License, Version 2.0.
 https://www.apache.org/licenses/LICENSE-2.0
