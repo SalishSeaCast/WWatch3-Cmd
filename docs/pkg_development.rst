@@ -124,8 +124,8 @@ and building the documentation with the commands below.
     $ cd MIDOSS
     $ conda env create -f WWatch3-Cmd/envs/environment-dev.yaml
     $ source activate wwatch3-cmd
-    (wwatch3-cmd)$ pip install --editable NEMO-Cmd/
-    (wwatch3-cmd)$ pip install --editable WWatch3-Cmd/
+    (wwatch3-cmd)$ python3 -m pip install --editable NEMO-Cmd/
+    (wwatch3-cmd)$ python3 -m pip install --editable WWatch3-Cmd/
 
 The :kbd:`--editable` option in the :command:`pip install` command above installs the packages from the cloned repos via symlinks so that the installed packages will be automatically updated as the repos evolve.
 
