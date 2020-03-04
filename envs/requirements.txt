@@ -1,7 +1,7 @@
 # Python packages and versions used in development environment
 #
 # Create/update this file with:
-#   (wwatch3-cmd)$ pip freeze >> env/requirements.txt
+#   (wwatch3-cmd)$ pip freeze >> envs/requirements.txt
 
 alabaster==0.7.12
 appdirs==1.4.3

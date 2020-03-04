@@ -122,7 +122,7 @@ and building the documentation with the commands below.
 .. code-block:: bash
 
     $ cd MIDOSS
-    $ conda env create -f WWatch3-Cmd/env/environment-dev.yaml
+    $ conda env create -f WWatch3-Cmd/envs/environment-dev.yaml
     $ source activate wwatch3-cmd
     (wwatch3-cmd)$ pip install --editable NEMO-Cmd/
     (wwatch3-cmd)$ pip install --editable WWatch3-Cmd/

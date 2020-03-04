@@ -4,12 +4,12 @@
 # Create a conda environment for development, testing and documentation of the package
 # with:
 #
-#   $ conda env create -f WWatch3-Cmd/env/environment-dev.yaml
+#   $ conda env create -f WWatch3-Cmd/envs/environment-dev.yaml
 #   $ source activate wwatch3-cmd
 #   (wwatch3-cmd)$ pip install --editable NEMO-Cmd
 #   (wwatch3-cmd)$ pip install --editable WWatch3-Cmd
 #
-# See the env/requirements.txt file for an exhaustive list of all of the
+# See the envs/requirements.txt file for an exhaustive list of all of the
 # packages installed in the environment and their versions used in
 # recent development.
 
