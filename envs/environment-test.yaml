@@ -18,7 +18,6 @@ dependencies:
   - f90nml
   - gitpython
   - pip
-  - python=3.7
   - python-hglib
 
   # For unit tests and coverage monitoring
