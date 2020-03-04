@@ -1,0 +1,26 @@
+# conda environment description file for WWatch3-Cmd package testing environment
+#
+# Creates a conda environment in which the WWatch3-Cmd package unit tests and
+# coverage analysis can be run.
+# Primarily intended for creation of a conda env for use in a GitHub Actions workflow.
+
+name: wwatch3-cmd-test
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - arrow
+  - attrs
+  - cliff!=2.9.0
+  - cookiecutter
+  - f90nml
+  - gitpython
+  - pip
+  - python=3.7
+  - python-hglib
+
+  # For unit tests and coverage monitoring
+  - pytest
+  - pytest-cov
