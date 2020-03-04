@@ -75,5 +75,5 @@ typing-extensions==3.7.4.1
 urllib3==1.25.7
 wcwidth==0.1.8
 whichcraft==0.6.1
--e WWatch3_Cmd==19.1.dev0
+-e WWatch3_Cmd==20.1.dev0
 zipp==3.1.0
