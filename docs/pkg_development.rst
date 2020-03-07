@@ -431,7 +431,7 @@ Issue Tracker
 
 Development tasks,
 bug reports,
-and enhancement ideas are recorded and managed in the issue tracker at https://bitbucket.org/midoss/wwatch3-cmd/issues.
+and enhancement ideas are recorded and managed in the issue tracker at https://github.com/MIDOSS/WWatch3-Cmd/issues.
 
 
 License
