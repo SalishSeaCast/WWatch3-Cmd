@@ -17,6 +17,12 @@ WaveWatch III® Command Processor
 .. image:: https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
     :target: https://wwatch3-cmd.readthedocs.io/en/latest/
     :alt: Documentation Status
+.. image:: https://github.com/MIDOSS/WWatch3-Cmd/workflows/CI/badge.svg
+    :target: https://github.com/MIDOSS/WWatch3-Cmd/actions?query=workflow%3ACI
+    :alt: GitHub Workflow Status
+.. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
+    :alt: Codecov Testing Coverage Report
 .. image:: https://img.shields.io/github/issues/MIDOSS/WWatch3-Cmd?logo=github
     :target: https://github.com/MIDOSS/WWatch3-Cmd/issues
     :alt: Issue Tracker
