@@ -36,7 +36,6 @@ jinja2-time==0.2.0
 MarkupSafe==1.1.1
 more-itertools==8.2.0
 mypy-extensions==0.4.3
--e NEMO-Cmd==20.1.dev0
 packaging==20.1
 pathspec==0.7.0
 pbr==5.4.2
@@ -75,5 +74,4 @@ typing-extensions==3.7.4.1
 urllib3==1.25.7
 wcwidth==0.1.8
 whichcraft==0.6.1
--e WWatch3_Cmd==20.1.dev0
 zipp==3.1.0
