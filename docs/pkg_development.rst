@@ -116,13 +116,12 @@ beside your clone of the :kbd:`WWatch3-Cmd` `repository`_.
 .. _NEMO-Cmd repo: https://bitbucket.org/salishsea/nemo-cmd
 
 Setting up an isolated development environment using `Conda`_ is recommended.
-Assuming that you have the `Anaconda Python Distribution`_ or `Miniconda3`_ installed,
+Assuming that you have `Miniconda3`_ installed,
 you can create and activate an environment called :kbd:`wwatch3-cmd` that will have all of the Python packages necessary for development,
 testing,
 and building the documentation with the commands below.
 
 .. _Conda: https://conda.io/en/latest/
-.. _Anaconda Python Distribution: https://www.anaconda.com/distribution/
 .. _Miniconda3:  https://docs.conda.io/en/latest/miniconda.html
 
 .. code-block:: bash
@@ -298,7 +297,6 @@ The output looks something like::
   (line   21) ok        https://bitbucket.org/midoss/wwatch3-cmd/
   (line   21) ok        https://black.readthedocs.io/en/stable/
   (line   64) ok        https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep519
-  (line  112) ok        https://www.anaconda.com/distribution/
   (line   94) ok        https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html
   (line  148) ok        https://www.python.org/dev/peps/pep-0008/
   (line  180) ok        http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
