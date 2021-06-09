@@ -42,3 +42,4 @@ dependencies:
 
   - pip:
       - python-hglib
+      - pytest-randomly
