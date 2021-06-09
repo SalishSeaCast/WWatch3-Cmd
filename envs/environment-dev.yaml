@@ -17,7 +17,7 @@ name: wwatch3-cmd
 
 channels:
   - conda-forge
-  - defaults
+  - nodefaults
 
 dependencies:
   - arrow
