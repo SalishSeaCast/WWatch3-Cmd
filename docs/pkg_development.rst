@@ -25,7 +25,7 @@
     :target: https://www.apache.org/licenses/LICENSE-2.0
     :alt: Licensed under the Apache License, Version 2.0
 .. image:: https://img.shields.io/badge/python-3.6+-blue.svg
-    :target: https://docs.python.org/3.7/
+    :target: https://docs.python.org/3.9/
     :alt: Python Version
 .. image:: https://img.shields.io/badge/version%20control-git-blue.svg?logo=github
     :target: https://github.com/MIDOSS/WWatch3-Cmd
@@ -58,10 +58,10 @@ Python Versions
 ===============
 
 .. image:: https://img.shields.io/badge/python-3.6+-blue.svg
-    :target: https://docs.python.org/3.7/
+    :target: https://docs.python.org/3.9/
     :alt: Python Version
 
-The :kbd:`wwatch3_cmd` package is developed and tested using `Python`_ 3.7 or later.
+The :kbd:`wwatch3_cmd` package is developed and tested using `Python`_ 3.9.
 The package uses some Python language features that are not available in versions prior to 3.6,
 in particular:
 
@@ -291,7 +291,7 @@ The output looks something like::
   (line   55) ok        https://www.apache.org/licenses/LICENSE-2.0
   (line   65) ok        https://www.apache.org/licenses/LICENSE-2.0
   writing output... [ 40%] pkg_development
-  (line   21) ok        https://docs.python.org/3.7/
+  (line   21) ok        https://docs.python.org/3.9/
   (line   58) ok        https://www.python.org/
   (line   62) ok        https://docs.python.org/3/reference/lexical_analysis.html#f-strings
   (line   21) ok        https://bitbucket.org/midoss/wwatch3-cmd/
