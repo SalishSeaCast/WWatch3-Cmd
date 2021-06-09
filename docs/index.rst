@@ -62,7 +62,7 @@ The code and documentation of the WaveWatch III® Command Processor project
 are copyright 2019-2021 by the `MIDOSS project contributors`_, The University of British Columbia,
 and Dalhousie University.
 
-.. _MIDOSS project contributors: https://github.com/MIDOSS/docs/blob/master/CONTRIBUTORS.rst
+.. _MIDOSS project contributors: https://github.com/MIDOSS/docs/blob/main/CONTRIBUTORS.rst
 
 They are licensed under the Apache License, Version 2.0.
 https://www.apache.org/licenses/LICENSE-2.0

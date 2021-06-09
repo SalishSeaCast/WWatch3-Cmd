@@ -39,7 +39,7 @@
 .. image:: https://github.com/MIDOSS/WWatch3-Cmd/workflows/CI/badge.svg
     :target: https://github.com/MIDOSS/WWatch3-Cmd/actions?query=workflow%3ACI
     :alt: GitHub Workflow Status
-.. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
     :alt: Codecov Testing Coverage Report
 .. image:: https://img.shields.io/github/issues/MIDOSS/WWatch3-Cmd?logo=github
@@ -384,7 +384,7 @@ Continuous Integration
 .. image:: https://github.com/MIDOSS/WWatch3-Cmd/workflows/CI/badge.svg
     :target: https://github.com/MIDOSS/WWatch3-Cmd/actions?query=workflow%3ACI
     :alt: GitHub Workflow Status
-.. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
     :alt: Codecov Testing Coverage Report
 
@@ -395,7 +395,7 @@ or from the green checkmark to the left of the "Latest commit" message on the `r
 The testing coverage report is uploaded to `codecov.io`_
 
 .. _repo actions page: https://github.com/MIDOSS/WWatch3-Cmd/actions
-.. _repo commits page: https://github.com/MIDOSS/WWatch3-Cmd/commits/master
+.. _repo commits page: https://github.com/MIDOSS/WWatch3-Cmd/commits/main
 .. _repo code overview page: https://github.com/MIDOSS/WWatch3-Cmd
 .. _codecov.io: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
 
@@ -443,7 +443,7 @@ The code and documentation of the WaveWatch III® Command Processor project
 are copyright 2019-2021 by the `MIDOSS project contributors`_, The University of British Columbia,
 and Dalhousie University.
 
-.. _MIDOSS project contributors: https://github.com/MIDOSS/docs/blob/master/CONTRIBUTORS.rst
+.. _MIDOSS project contributors: https://github.com/MIDOSS/docs/blob/main/CONTRIBUTORS.rst
 
 They are licensed under the Apache License, Version 2.0.
 https://www.apache.org/licenses/LICENSE-2.0
