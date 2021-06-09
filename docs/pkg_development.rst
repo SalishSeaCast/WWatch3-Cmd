@@ -24,7 +24,7 @@
 .. image:: https://img.shields.io/badge/license-Apache%202-cb2533.svg
     :target: https://www.apache.org/licenses/LICENSE-2.0
     :alt: Licensed under the Apache License, Version 2.0
-.. image:: https://img.shields.io/badge/python-3.6+-blue.svg
+.. image:: https://img.shields.io/badge/python-3.8+-blue.svg
     :target: https://docs.python.org/3.9/
     :alt: Python Version
 .. image:: https://img.shields.io/badge/version%20control-git-blue.svg?logo=github
@@ -57,21 +57,21 @@ configuration of the WAVEWATCH III® model as it is used in the context of the `
 Python Versions
 ===============
 
-.. image:: https://img.shields.io/badge/python-3.6+-blue.svg
+.. image:: https://img.shields.io/badge/python-3.8+-blue.svg
     :target: https://docs.python.org/3.9/
     :alt: Python Version
 
-The :kbd:`wwatch3_cmd` package is developed and tested using `Python`_ 3.9.
-The package uses some Python language features that are not available in versions prior to 3.6,
+The :kbd:`wwatch3_cmd` package is developed using `Python`_ 3.9.
+It is tested for Python versions >=3.8.
+The package uses some Python language features that are not available in versions prior to 3.8,
 in particular:
 
 * `formatted string literals`_
   (aka *f-strings*)
-* the `file system path protocol`_
+  with :kbd:`=` specifiers
 
 .. _Python: https://www.python.org/
 .. _formatted string literals: https://docs.python.org/3/reference/lexical_analysis.html#f-strings
-.. _file system path protocol: https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep519
 
 
 .. _WWatch3-CmdGettingTheCode:
@@ -306,7 +306,7 @@ The output looks something like::
   (line  294) ok        https://docs.pytest.org/en/latest/
   (line  317) ok        https://coverage.readthedocs.io/en/latest/
   (line  112) ok        https://docs.conda.io/en/latest/miniconda.html
-  (line   21) ok        https://img.shields.io/badge/python-3.6+-blue.svg
+  (line   21) ok        https://img.shields.io/badge/python-3.8+-blue.svg
   (line   21) ok        https://img.shields.io/badge/version%20control-hg-blue.svg
   (line   21) ok        https://img.shields.io/badge/code%20style-black-000000.svg
   (line   21) ok        https://img.shields.io/bitbucket/issues/midoss/wwatch3-cmd.svg
