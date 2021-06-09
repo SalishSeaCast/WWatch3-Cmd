@@ -28,7 +28,6 @@ dependencies:
   - gitpython
   - pip
   - python=3.7
-  - python-hglib
 
   # For coding style
   - black
@@ -40,3 +39,6 @@ dependencies:
   # For documentation
   - sphinx
   - sphinx_rtd_theme
+
+  - pip:
+      - python-hglib
