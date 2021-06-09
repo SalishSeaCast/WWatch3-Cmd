@@ -40,7 +40,7 @@
     :target: https://github.com/MIDOSS/WWatch3-Cmd/actions?query=workflow%3ACI
     :alt: GitHub Workflow Status
 .. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
+    :target: https://app.codecov.io/gh/MIDOSS/WWatch3-Cmd
     :alt: Codecov Testing Coverage Report
 .. image:: https://img.shields.io/github/issues/MIDOSS/WWatch3-Cmd?logo=github
     :target: https://github.com/MIDOSS/WWatch3-Cmd/issues
@@ -99,7 +99,7 @@ from the :guilabel:`Code` button on the `repository`_ page.
 
     The :kbd:`git clone` command above assumes that your are `connecting to GitHub using SSH`_.
     If it fails,
-    please follow the instructions in our :ref:`SecureRemoteAccess` docs to set up your SSH keys and :ref:`CopyYourPublicSshKeyToGitHub`.
+    please follow the instructions in our :ref:`moaddocs:SecureRemoteAccess` docs to set up your SSH keys and :ref:`moaddocs:CopyYourPublicSshKeyToGitHub`.
 
     .. _connecting to GitHub using SSH: https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh
 
@@ -113,7 +113,7 @@ The :kbd:`WWatch3-Cmd` package depends on the :kbd:`NEMO-Cmd` package,
 so you need to clone the `NEMO-Cmd repo`_
 beside your clone of the :kbd:`WWatch3-Cmd` `repository`_.
 
-.. _NEMO-Cmd repo: https://bitbucket.org/salishsea/nemo-cmd
+.. _NEMO-Cmd repo: https://github.com/SalishSeaCast/NEMO-Cmd
 
 Setting up an isolated development environment using `Conda`_ is recommended.
 Assuming that you have `Miniconda3`_ installed,
@@ -184,8 +184,8 @@ Building the Documentation
 
 The documentation for the :kbd:`WWatch3-Cmd` package is written in `reStructuredText`_ and converted to HTML using `Sphinx`_.
 
-.. _reStructuredText: http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
-.. _Sphinx: http://www.sphinx-doc.org/en/master/
+.. _reStructuredText: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+.. _Sphinx: https://www.sphinx-doc.org/en/master/
 
 If you have write access to the `repository`_ on GitHub,
 whenever you push changes to GitHub the documentation is automatically re-built and rendered at https://wwatch3-cmd.readthedocs.io/en/latest/.
@@ -229,8 +229,11 @@ to do a clean build of the documentation.
 The output looks something like::
 
   Removing everything under '_build'...
-  Running Sphinx v2.2.0
+  Running Sphinx v4.0.2
   making output directory... done
+  loading intersphinx inventory from https://ubc-moad-docs.readthedocs.io/en/latest/objects.inv...
+  loading intersphinx inventory from https://nemo-cmd.readthedocs.io/en/latest/objects.inv...
+  loading intersphinx inventory from https://salishsea-nowcast.readthedocs.io/en/latest/objects.inv...
   building [mo]: targets for 0 po files that are out of date
   building [html]: targets for 5 source files that are out of date
   updating environment: [new config] 5 added, 0 changed, 0 removed
@@ -240,10 +243,9 @@ The output looks something like::
   checking consistency... done
   preparing documents... done
   writing output... [100%] subcommands
-  generating indices...  genindexdone
-  writing additional pages...
-  done
-  copying static files... ... done
+  generating indices... genindex done
+  writing additional pages... search done
+  copying static files... done
   copying extra files... done
   dumping search index in English (code: en)... done
   dumping object inventory... done
@@ -274,54 +276,68 @@ use:
 
 The output looks something like::
 
-  loading pickled environment... done
+  Removing everything under '_build'...
+  Running Sphinx v4.0.2
+  making output directory... done
+  loading intersphinx inventory from https://ubc-moad-docs.readthedocs.io/en/latest/objects.inv...
+  loading intersphinx inventory from https://nemo-cmd.readthedocs.io/en/latest/objects.inv...
+  loading intersphinx inventory from https://salishsea-nowcast.readthedocs.io/en/latest/objects.inv...
   building [mo]: targets for 0 po files that are out of date
   building [linkcheck]: targets for 5 source files that are out of date
-  updating environment: 0 added, 1 changed, 0 removed
-  reading sources... [100%] run_description_file/index
+  updating environment: [new config] 5 added, 0 changed, 0 removed
+  reading sources... [100%] subcommands
   looking for now-outdated files... none found
   pickling environment... done
   checking consistency... done
   preparing documents... done
-  writing output... [ 20%] index
-  (line   27) ok        https://docs.openstack.org/cliff/latest/
-  (line   55) ok        https://img.shields.io/badge/license-Apache%202-cb2533.svg
-  (line   21) ok        https://midoss-docs.readthedocs.io/en/latest/
-  (line   27) ok        https://bitbucket.org/salishsea/nemo-cmd
-  (line   55) ok        https://www.apache.org/licenses/LICENSE-2.0
-  (line   65) ok        https://www.apache.org/licenses/LICENSE-2.0
-  writing output... [ 40%] pkg_development
-  (line   21) ok        https://docs.python.org/3.9/
-  (line   58) ok        https://www.python.org/
-  (line   62) ok        https://docs.python.org/3/reference/lexical_analysis.html#f-strings
-  (line   21) ok        https://bitbucket.org/midoss/wwatch3-cmd/
-  (line   21) ok        https://black.readthedocs.io/en/stable/
-  (line   64) ok        https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep519
-  (line   94) ok        https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html
-  (line  148) ok        https://www.python.org/dev/peps/pep-0008/
-  (line  180) ok        http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
-  (line   21) ok        https://bitbucket.org/midoss/wwatch3-cmd/issues?status=new&status=open
-  (line  112) ok        https://conda.io/en/latest/
-  (line  180) ok        http://www.sphinx-doc.org/en/master/
-  (line  294) ok        https://docs.pytest.org/en/latest/
-  (line  317) ok        https://coverage.readthedocs.io/en/latest/
-  (line  112) ok        https://docs.conda.io/en/latest/miniconda.html
-  (line   21) ok        https://img.shields.io/badge/python-3.8+-blue.svg
-  (line   21) ok        https://img.shields.io/badge/version%20control-hg-blue.svg
-  (line   21) ok        https://img.shields.io/badge/code%20style-black-000000.svg
-  (line   21) ok        https://img.shields.io/bitbucket/issues/midoss/wwatch3-cmd.svg
-  (line  174) ok        https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
-  (line   21) ok        https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
-  (line  351) ok        https://www.mercurial-scm.org/
-  (line  365) ok        https://bitbucket.org/midoss/wwatch3-cmd/issues
-  writing output... [ 60%] run_description_file/index
-  (line   23) ok        https://pyyaml.org/wiki/PyYAMLDocumentation
-  writing output... [ 80%] run_description_file/yaml_file
   writing output... [100%] subcommands
 
-  build finished.
+  ( pkg_development: line   21) ok        https://black.readthedocs.io/en/stable/
+  ( pkg_development: line  361) ok        https://coverage.readthedocs.io/en/latest/
+  ( pkg_development: line  118) ok        https://conda.io/en/latest/
+  ( pkg_development: line   21) ok        https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/main/graph/badge.svg
+  ( pkg_development: line   21) ok        https://app.codecov.io/gh/MIDOSS/WWatch3-Cmd
+  ( pkg_development: line  118) ok        https://docs.conda.io/en/latest/miniconda.html
+  ( pkg_development: line  100) ok        https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh
+  ( pkg_development: line  334) ok        https://docs.pytest.org/en/latest/
+  ( pkg_development: line   21) ok        https://docs.python.org/3.9/
+  ( pkg_development: line   69) ok        https://docs.python.org/3/reference/lexical_analysis.html#f-strings
+  ( pkg_development: line  420) ok        https://git-scm.com/
+  (           index: line   27) ok        https://docs.openstack.org/cliff/latest/
+  ( pkg_development: line  406) ok        https://docs.github.com/en/actions
+  ( pkg_development: line   21) ok        https://github.com/MIDOSS/WWatch3-Cmd
+  ( pkg_development: line  395) ok        https://github.com/MIDOSS/WWatch3-Cmd/actions
+  ( pkg_development: line   21) ok        https://github.com/MIDOSS/WWatch3-Cmd/issues
+  ( pkg_development: line   21) ok        https://github.com/MIDOSS/WWatch3-Cmd/workflows/CI/badge.svg
+  ( pkg_development: line   21) ok        https://github.com/MIDOSS/WWatch3-Cmd/actions?query=workflow%3ACI
+  ( pkg_development: line   21) ok        https://img.shields.io/badge/code%20style-black-000000.svg
+  (           index: line   55) ok        https://img.shields.io/badge/license-Apache%202-cb2533.svg
+  ( pkg_development: line   21) ok        https://img.shields.io/badge/version%20control-git-blue.svg?logo=github
+  ( pkg_development: line   21) ok        https://img.shields.io/badge/python-3.8+-blue.svg
+  ( pkg_development: line   21) ok        https://img.shields.io/github/issues/MIDOSS/WWatch3-Cmd?logo=github
+  (           index: line   21) ok        https://midoss-docs.readthedocs.io/en/latest/
+  (     subcommands: line  171) ok        https://nemo-cmd.readthedocs.io/en/latest/subcommands.html#nemo-gather
+  ( pkg_development: line  361) ok        https://pytest-cov.readthedocs.io/en/latest/
+  (run_description_file/index: line   23) ok        https://pyyaml.org/wiki/PyYAMLDocumentation
+  ( pkg_development: line  395) ok        https://github.com/MIDOSS/WWatch3-Cmd/commits/main
+  (run_description_file/yaml_file: line  134) ok        https://salishsea-nowcast.readthedocs.io/en/latest/workers.html#makeww3currentfile-worker
+  (           index: line   27) ok        https://github.com/SalishSeaCast/NEMO-Cmd
+  (           index: line   61) ok        https://github.com/MIDOSS/docs/blob/main/CONTRIBUTORS.rst
+  (run_description_file/yaml_file: line  137) ok        https://salishsea-nowcast.readthedocs.io/en/latest/workers.html#makeww3windfile-worker
+  ( pkg_development: line  100) ok        https://ubc-moad-docs.readthedocs.io/en/latest/ssh_access.html#secureremoteaccess
+  ( pkg_development: line  100) ok        https://ubc-moad-docs.readthedocs.io/en/latest/ssh_access.html#copyyourpublicsshkeytogithub
+  (run_description_file/yaml_file: line   48) ok        https://slurm.schedmd.com/
+  ( pkg_development: line   21) ok        https://wwatch3-cmd.readthedocs.io/en/latest/
+  ( pkg_development: line   64) ok        https://www.python.org/
+  ( pkg_development: line  153) ok        https://www.python.org/dev/peps/pep-0008/
+  ( pkg_development: line  185) ok        https://www.sphinx-doc.org/en/master/
+  ( pkg_development: line  185) ok        https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+  ( pkg_development: line   21) ok        https://readthedocs.org/projects/wwatch3-cmd/badge/?version=latest
+  ( pkg_development: line  201) ok        https://readthedocs.org/projects/wwatch3-cmd/builds/
+  (           index: line   55) ok        https://www.apache.org/licenses/LICENSE-2.0
+  build succeeded.
 
-Look for any errors in the above output or in _build/linkcheck/output.txt
+  Look for any errors in the above output or in _build/linkcheck/output.txt
 
 
 .. _WWatch3-CmdRunningTheUnitTests:
@@ -340,19 +356,21 @@ use:
 .. code-block:: bash
 
     (wwatch3-cmd)$ cd WWatch3-Cmd/
-    (wwatch3-cmd)$ py.test
+    (wwatch3-cmd)$ pytest
 
 to run the test suite.
 The output looks something like::
 
-  =========================== test session starts ===========================
-  platform linux -- Python 3.7.3, pytest-5.1.2, py-1.8.0, pluggy-0.13.0
+  ================================= test session starts =================================
+  platform linux -- Python 3.9.4, pytest-6.2.4, py-1.10.0, pluggy-0.13.1
+  Using --randomly-seed=1229191934
   rootdir: /media/doug/warehouse/MIDOSS/WWatch3-Cmd
-  collected 10 items
+  plugins: randomly-3.8.0
+  collected 42 items
 
-  tests/test_prepare.py ..........                                     [100%]
+  tests/test_run.py ..........................................                                                                                                                                                                                                                                                          [100%]
 
-  ============================ 10 passed in 0.17s ============================
+  ================================= 42 passed in 1.84s ==================================
 
 You can monitor what lines of code the test suite exercises using the `coverage.py`_ and `pytest-cov`_ tools with the command:
 
@@ -385,7 +403,7 @@ Continuous Integration
     :target: https://github.com/MIDOSS/WWatch3-Cmd/actions?query=workflow%3ACI
     :alt: GitHub Workflow Status
 .. image:: https://codecov.io/gh/MIDOSS/WWatch3-Cmd/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
+    :target: https://app.codecov.io/gh/MIDOSS/WWatch3-Cmd
     :alt: Codecov Testing Coverage Report
 
 The :kbd:`WWatch3-Cmd` package unit test suite is run and a coverage report is generated whenever changes are pushed to GitHub.
@@ -397,11 +415,11 @@ The testing coverage report is uploaded to `codecov.io`_
 .. _repo actions page: https://github.com/MIDOSS/WWatch3-Cmd/actions
 .. _repo commits page: https://github.com/MIDOSS/WWatch3-Cmd/commits/main
 .. _repo code overview page: https://github.com/MIDOSS/WWatch3-Cmd
-.. _codecov.io: https://codecov.io/gh/MIDOSS/WWatch3-Cmd
+.. _codecov.io: https://app.codecov.io/gh/MIDOSS/WWatch3-Cmd
 
 The `GitHub Actions`_ workflow configuration that defines the continuous integration tasks is in the :file:`.github/workflows/pytest-coverage.yaml` file.
 
-.. _GitHub Actions: https://help.github.com/en/actions
+.. _GitHub Actions: https://docs.github.com/en/actions
 
 
 .. _WWatch3-CmdVersionControlRepository:

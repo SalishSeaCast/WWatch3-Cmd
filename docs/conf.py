@@ -55,7 +55,8 @@ release = wwatch3_cmd.__version__
 extensions = ["sphinx.ext.intersphinx"]
 
 intersphinx_mapping = {
-    "nemocmd": ("http://nemo-cmd.readthedocs.io/en/latest/", None),
+    "moaddocs": ("https://ubc-moad-docs.readthedocs.io/en/latest/", None),
+    "nemocmd": ("https://nemo-cmd.readthedocs.io/en/latest/", None),
     "salishseanowcast": ("https://salishsea-nowcast.readthedocs.io/en/latest/", None),
 }
 
