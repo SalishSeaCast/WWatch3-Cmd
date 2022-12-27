@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Cache conda pkgs
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         env:
           # Increase this value to reset cache if envs/environment-test.yaml has not changed
           CACHE_NUMBER: 0
