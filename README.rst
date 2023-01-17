@@ -27,6 +27,14 @@ WaveWatch III® Command Processor
     :target: https://github.com/MIDOSS/WWatch3-Cmd/issues
     :alt: Issue Tracker
 
+**This repository has been archived to reduce maintenance workload.**
+The primary use of this package was for running wave model hindcasts and there is no anticipated need
+for that in the foreseeable future.
+Please contact `@SusanEAllen`_ or `@DougLatornell`_ if you see a need for this repository to be re-activated.
+
+.. _@SusanEAllen: https://github.com/SusanEAllen
+.. _@DougLatornell: https://github.com/douglatornell
+
 The WaveWatch III® command processor package, ``WWatch3-Cmd``, provides the ``wwatch3``
 command-line tool for doing various operations associated with the Strait of Georgia
 configuration of the WAVEWATCH III® model as it is used in the context of the `MIDOSS project`_.
